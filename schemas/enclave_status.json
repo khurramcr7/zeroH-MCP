@@ -1,0 +1,9 @@
+{
+  "name": "enclave_status",
+  "description": "Check the health, execution tier, and IP protection status of the zeroH MCP server and Sovereign Enclave bridge.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

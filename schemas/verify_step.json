@@ -1,0 +1,21 @@
+{
+  "name": "verify_step",
+  "description": "Submit a single reasoning or mathematical step to the tamper-evident SHA-256 session ledger before stating it. Supported step kinds: 'compute' {expr, value}, 'solve' {equation, claimed: {x: val}}, 'reasoning' {text}, 'interpretation' {text}.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session identifier for the multi-step reasoning chain."
+      },
+      "step": {
+        "type": "object",
+        "description": "Step object containing 'kind' and kind-specific parameters."
+      }
+    },
+    "required": [
+      "session",
+      "step"
+    ]
+  }
+}

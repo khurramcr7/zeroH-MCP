@@ -1,0 +1,27 @@
+{
+  "name": "solve_equation",
+  "description": "Solve an algebraic equation and verify every solution by exact substitution.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "equation": {
+        "type": "string",
+        "description": "Algebraic equation (e.g., 'x**2 - 5*x + 6 = 0')."
+      },
+      "unknown": {
+        "type": "string",
+        "description": "Variable symbol to solve for (default: 'x')."
+      },
+      "claimed": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "description": "Optional list of claimed solutions to check by substitution."
+      }
+    },
+    "required": [
+      "equation"
+    ]
+  }
+}

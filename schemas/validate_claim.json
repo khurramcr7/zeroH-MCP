@@ -1,0 +1,20 @@
+{
+  "name": "validate_claim",
+  "description": "Intercept and validate a factual, mathematical, or scientific claim before presenting it. Returns Coherence Index (0.0-1.0), Confidence Score (0%-100%), and Deterministic Status (VERIFIED_COMPUTED_PASS, REJECTED_HALLUCINATION, BOUNDARY_BREACH, or NEEDS_REVIEW).",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "claim": {
+        "type": "string",
+        "description": "The text proposition, calculation, or claim to validate."
+      },
+      "context": {
+        "type": "string",
+        "description": "Validation domain or context (default: 'general_domain')."
+      }
+    },
+    "required": [
+      "claim"
+    ]
+  }
+}

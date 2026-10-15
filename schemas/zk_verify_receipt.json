@@ -1,0 +1,20 @@
+{
+  "name": "zk_verify_receipt",
+  "description": "Generate a cryptographic commitment receipt over a verified claim (or request an R1CS proof from a connected Sovereign Enclave).",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "claim": {
+        "type": "string",
+        "description": "Claim text to bind into a cryptographic verification receipt."
+      },
+      "authority": {
+        "type": "string",
+        "description": "Verification authority label (default: 'zeroH_Public_Verifier')."
+      }
+    },
+    "required": [
+      "claim"
+    ]
+  }
+}

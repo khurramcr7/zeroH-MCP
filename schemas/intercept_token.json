@@ -1,0 +1,16 @@
+{
+  "name": "intercept_token",
+  "description": "Query the Sovereign Enclave canonical ledger for a token or root reference. Requires an authenticated Sovereign Enclave connection (ZEROH_API_URL).",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "description": "Token or reference identifier to look up in the Sovereign Enclave."
+      }
+    },
+    "required": [
+      "token"
+    ]
+  }
+}

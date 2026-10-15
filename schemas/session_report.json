@@ -1,0 +1,16 @@
+{
+  "name": "session_report",
+  "description": "Seal and audit all steps submitted in a reasoning session. Returns FULLY_PROVEN only if every active step was deterministically proven, along with the SHA-256 Merkle head hash.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session identifier to seal and report."
+      }
+    },
+    "required": [
+      "session"
+    ]
+  }
+}

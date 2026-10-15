@@ -1,0 +1,16 @@
+{
+  "name": "compute",
+  "description": "Compute the exact rational fraction and decimal value of a numeric expression using zero-drift AST rational arithmetic.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "expr": {
+        "type": "string",
+        "description": "Mathematical expression to evaluate (e.g., '(144 / 12) + 7')."
+      }
+    },
+    "required": [
+      "expr"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zeroh-mcp"
+version = "1.0.0"
+description = "zeroH MCP — Deterministic AI Hallucination Guardrail, Step-by-Step Proof Ledger & Sovereign Verification Protocol for MCP Clients"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Khurram Younus", email = "khurramcr7@gmail.com"}
+]
+requires-python = ">=3.10"
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "zeroh",
+    "ai-guardrail",
+    "hallucination-detection",
+    "deterministic-verification",
+    "symbolic-verification",
+    "bft-consensus"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security :: Cryptography",
+]
+dependencies = []
+
+[project.optional-dependencies]
+symbolic = ["sympy>=1.12"]
+dev = ["pytest>=7.4.0"]
+
+[project.scripts]
+zeroh-mcp = "zeroh_mcp.server:main"
+zeroh-cli = "zeroh_mcp.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/khurramcr7/zeroH-MCP"
+Repository = "https://github.com/khurramcr7/zeroH-MCP.git"
+Issues = "https://github.com/khurramcr7/zeroH-MCP/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["zeroh_mcp*"]

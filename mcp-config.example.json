@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "zeroh-mcp": {
+      "command": "python",
+      "args": ["-m", "zeroh_mcp.server"],
+      "env": {
+        "ZEROH_API_URL": "",
+        "ZEROH_API_KEY": ""
+      }
+    }
+  }
+}

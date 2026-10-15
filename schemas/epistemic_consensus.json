@@ -1,0 +1,28 @@
+{
+  "name": "epistemic_consensus",
+  "description": "Byzantine Fault Tolerant (BFT) Multi-Agent Epistemic Consensus Gate. Evaluates agent proposals across the 4-tier epistemic lattice (QATI, ZANNI_GHALIB, SHAKK, WAHM) with automatic hallucination veto.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "agent_id": {
+        "type": "string",
+        "description": "Identifier of the proposing agent."
+      },
+      "proposal": {
+        "type": "string",
+        "description": "Proposed statement or calculation to evaluate."
+      },
+      "confidence": {
+        "type": "number",
+        "description": "Reported confidence score in [0.0, 1.0]."
+      },
+      "contradiction": {
+        "type": "number",
+        "description": "Measured contradiction evidence in [0.0, 1.0]."
+      }
+    },
+    "required": [
+      "proposal"
+    ]
+  }
+}
