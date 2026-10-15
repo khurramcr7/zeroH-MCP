@@ -32,7 +32,8 @@ _ARITH_EQUATION_RE = re.compile(
 )
 _SPECULATIVE_DIVINATION_RE = re.compile(
     r"\b(?:fortune[-\s]?tell(?:ing|er)?|sooth\s*say(?:ing|er)?|palmistry|palmist|"
-    r"horoscope\s+predict(?:ion|s)?)\b",
+    r"horoscope\s+predict(?:ion|s)?)\b|"
+    r"\bastrolog(?:y|ical|er)?\b.*\b(?:predict(?:s|ed|ing|ion|ions)?|forecast(?:s|ed|ing)?|fate|destiny|tomorrow)\b",
     re.IGNORECASE,
 )
 
