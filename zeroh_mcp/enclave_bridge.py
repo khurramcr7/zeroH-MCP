@@ -47,12 +47,14 @@ class SovereignEnclaveBridge:
         self.api_key = (api_key or os.environ.get("ZEROH_API_KEY", "")).strip()
         self.timeout = timeout
         self._ledgers: Dict[str, PublicStepLedger] = {}
+        self._last_enclave_error: Optional[str] = None
 
     @property
     def is_enclave_configured(self) -> bool:
         return bool(self.api_url)
 
     def _post_enclave(self, endpoint: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        self._last_enclave_error = None
         if not self.is_enclave_configured:
             return None
         url = f"{self.api_url}{endpoint}"
@@ -74,8 +76,18 @@ class SovereignEnclaveBridge:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 raw = json.loads(resp.read().decode("utf-8"))
                 return self._sanitize_enclave_response(raw)
-        except Exception:
+        except Exception as exc:
+            self._last_enclave_error = str(exc)
             return None
+
+    def _attach_fallback_warning(self, res: Dict[str, Any]) -> Dict[str, Any]:
+        if self.is_enclave_configured and self._last_enclave_error:
+            res["enclave_fallback"] = True
+            res["enclave_warning"] = (
+                f"Configured Sovereign Enclave ({self.api_url}) was unreachable ({self._last_enclave_error}); "
+                "fell back to PUBLIC_OPEN_BOUNDARY_AST."
+            )
+        return res
 
     @staticmethod
     def _sanitize_enclave_response(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -99,14 +111,14 @@ class SovereignEnclaveBridge:
         if remote_res is not None:
             remote_res["execution_tier"] = "REMOTE_SOVEREIGN_ENCLAVE"
             return remote_res
-        return validate_claim_open_boundary(claim, context=context).to_dict()
+        return self._attach_fallback_warning(validate_claim_open_boundary(claim, context=context).to_dict())
 
     def intercept_token(self, token: str) -> Dict[str, Any]:
         remote_res = self._post_enclave("/v1/intercept", {"token": token})
         if remote_res is not None:
             remote_res["execution_tier"] = "REMOTE_SOVEREIGN_ENCLAVE"
             return remote_res
-        return {
+        return self._attach_fallback_warning({
             "token": token,
             "status": "ENCLAVE_REQUIRED",
             "deterministic_status": DeterministicStatus.NEEDS_REVIEW.value,
@@ -117,7 +129,7 @@ class SovereignEnclaveBridge:
                 "connection (set ZEROH_API_URL and ZEROH_API_KEY). Proprietary ledger "
                 "tensors are not bundled in the public repository."
             ),
-        }
+        })
 
     def verify_step(self, session: str, step: Dict[str, Any]) -> Dict[str, Any]:
         ledger = self._ledgers.setdefault(session or "default", PublicStepLedger(session or "default"))
@@ -152,7 +164,7 @@ class SovereignEnclaveBridge:
         if remote_res is not None:
             remote_res["execution_tier"] = "REMOTE_SOVEREIGN_ENCLAVE"
             return remote_res
-        return generate_public_commitment_receipt(claim, authority=authority)
+        return self._attach_fallback_warning(generate_public_commitment_receipt(claim, authority=authority))
 
     def epistemic_consensus(
         self,
@@ -173,11 +185,13 @@ class SovereignEnclaveBridge:
         if remote_res is not None:
             remote_res["execution_tier"] = "REMOTE_SOVEREIGN_ENCLAVE"
             return remote_res
-        return evaluate_bft_epistemic_quorum(
-            agent_id=agent_id,
-            proposal=proposal,
-            confidence=confidence,
-            contradiction=contradiction,
+        return self._attach_fallback_warning(
+            evaluate_bft_epistemic_quorum(
+                agent_id=agent_id,
+                proposal=proposal,
+                confidence=confidence,
+                contradiction=contradiction,
+            )
         )
 
     def enclave_status(self) -> Dict[str, Any]:

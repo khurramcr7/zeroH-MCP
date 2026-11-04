@@ -28,7 +28,11 @@ from typing import Any, Dict, List, Optional
 from .models import DeterministicStatus, EpistemicTier, ValidationReceipt
 
 _ARITH_EQUATION_RE = re.compile(
-    r"((?:\d+(?:\.\d+)?|\s|[-+*/^().])+)\s*(==|=|!=|≠)\s*(-?\d+(?:\.\d+)?(?:/\d+)?)"
+    r"(?<![A-Za-z_\d])((?:\d+(?:\.\d+)?|\s|[-+*/^().])+)\s*(==|=|!=|≠)\s*(-?\d+(?:\.\d+)?(?:/\d+)?)(?![A-Za-z_\d])"
+)
+_IF_THEN_EQ_RE = re.compile(
+    r"\bif\s+([^,;\n]+?=[^,;\n]+?)\s+then\s+([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(-?\d+(?:\.\d+)?(?:/\d+)?)",
+    re.IGNORECASE,
 )
 _SPECULATIVE_DIVINATION_RE = re.compile(
     r"\b(?:fortune[-\s]?tell(?:ing|er)?|sooth\s*say(?:ing|er)?|palmistry|palmist|"
@@ -36,6 +40,27 @@ _SPECULATIVE_DIVINATION_RE = re.compile(
     r"\bastrolog(?:y|ical|er)?\b.*\b(?:predict(?:s|ed|ing|ion|ions)?|forecast(?:s|ed|ing)?|fate|destiny|tomorrow)\b",
     re.IGNORECASE,
 )
+
+
+def _normalize_math_notation(text: str) -> str:
+    """Normalizes thousand-separator commas and unicode math operators (×, ÷, −, √)."""
+    s = (
+        (text or "")
+        .replace("×", "*")
+        .replace("⋅", "*")
+        .replace("·", "*")
+        .replace("÷", "/")
+        .replace("−", "-")
+        .replace("–", "-")
+    )
+    # Strip thousand-separator commas inside numbers (e.g. 14,266 -> 14266)
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r"(\d),(?=\d{3}(?!\d))", r"\1", s)
+    s = re.sub(r"√\s*\(([^()]+)\)", r"sqrt(\1)", s)
+    s = re.sub(r"√\s*(\d+(?:\.\d+)?)", r"sqrt(\1)", s)
+    return s
 
 
 def _eval_exact_ast(node: ast.AST) -> Fraction:
@@ -67,16 +92,51 @@ def _eval_exact_ast(node: ast.AST) -> Fraction:
     raise ValueError("Unsupported non-arithmetic AST node")
 
 
+def _eval_complex_ast(node: ast.AST, env: Dict[str, complex]) -> complex:
+    """Safely evaluates an algebraic AST node at a complex point without Python eval()."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float, complex)) and not isinstance(node.value, bool):
+        return complex(node.value)
+    if isinstance(node, ast.Name):
+        if node.id in env:
+            return complex(env[node.id])
+        raise ValueError(f"Unknown symbol '{node.id}'")
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        return -_eval_complex_ast(node.operand, env)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.UAdd):
+        return _eval_complex_ast(node.operand, env)
+    if isinstance(node, ast.BinOp):
+        left = _eval_complex_ast(node.left, env)
+        right = _eval_complex_ast(node.right, env)
+        if isinstance(node.op, ast.Add):
+            return left + right
+        if isinstance(node.op, ast.Sub):
+            return left - right
+        if isinstance(node.op, ast.Mult):
+            return left * right
+        if isinstance(node.op, ast.Div):
+            if right == 0:
+                raise ZeroDivisionError("Division by zero in expression")
+            return left / right
+        if isinstance(node.op, (ast.Pow, ast.BitXor)):
+            if abs(right) > 1000:
+                raise ValueError("Exponent out of bounds")
+            return left ** right
+    raise ValueError("Unsupported AST node in algebraic evaluation")
+
+
 def compute_exact(expr: str) -> Dict[str, Any]:
     """
-    Computes the exact rational and decimal value of a mathematical expression.
+    Computes the exact rational (or symbolic/irrational) and decimal value of a mathematical expression.
     Uses AST + fractions.Fraction so rational arithmetic has zero floating-point drift.
+    Never labels an uncomputable or irrational expression as a hallucination.
     """
-    cleaned = expr.strip().replace("^", "**")
+    cleaned = _normalize_math_notation(expr).strip().replace("^", "**")
     if not cleaned:
         return {
             "expression": expr,
             "status": "INVALID_EXPRESSION",
+            "coherence_index": 0.0,
+            "confidence_score": "0.0%",
             "deterministic_status": DeterministicStatus.NEEDS_REVIEW.value,
         }
     try:
@@ -94,7 +154,7 @@ def compute_exact(expr: str) -> Dict[str, Any]:
             "confidence_score": "100.0%",
             "deterministic_status": DeterministicStatus.VERIFIED_COMPUTED_PASS.value,
         }
-    except Exception as exc:
+    except ZeroDivisionError as exc:
         return {
             "expression": expr,
             "status": "COMPUTATION_ERROR",
@@ -102,6 +162,33 @@ def compute_exact(expr: str) -> Dict[str, Any]:
             "coherence_index": 0.0,
             "confidence_score": "0.0%",
             "deterministic_status": DeterministicStatus.REJECTED_HALLUCINATION.value,
+        }
+    except Exception as exc:
+        # Check if SymPy can evaluate a valid symbolic/irrational math expression (e.g. sqrt(2), √2)
+        try:
+            if re.fullmatch(r"[\d\s+\-*/().sqrtpi]+", cleaned):
+                import sympy as sp
+                safe_locals = {"sqrt": sp.sqrt, "pi": sp.pi}
+                sym_val = sp.sympify(cleaned, locals=safe_locals)
+                if sym_val.is_number and sym_val.is_finite is not False and not sym_val.has(sp.zoo, sp.nan):
+                    return {
+                        "expression": expr,
+                        "exact_symbolic": str(sym_val),
+                        "decimal_value": round(float(sp.N(sym_val, 15)), 12),
+                        "status": "SYMBOLIC_EXACT",
+                        "coherence_index": 1.0,
+                        "confidence_score": "100.0%",
+                        "deterministic_status": DeterministicStatus.VERIFIED_COMPUTED_PASS.value,
+                    }
+        except Exception:
+            pass
+        return {
+            "expression": expr,
+            "status": "COMPUTATION_ERROR",
+            "error": str(exc),
+            "coherence_index": 0.0,
+            "confidence_score": "0.0%",
+            "deterministic_status": DeterministicStatus.NEEDS_REVIEW.value,
         }
 
 
@@ -112,30 +199,35 @@ def solve_algebraic_equation(
 ) -> Dict[str, Any]:
     """
     Solves a linear or quadratic algebraic equation (or uses SymPy if installed)
-    and verifies every solution by substitution.
+    and verifies every solution by substitution without using Python's eval().
     """
-    raw_eq = equation.strip().replace("^", "**")
+    raw_eq = _normalize_math_notation(equation).strip().replace("^", "**")
+    raw_eq = re.sub(rf"(\d)\s*({re.escape(unknown)}\b)", r"\1*\2", raw_eq)
     if "=" not in raw_eq:
         raw_eq = f"{raw_eq} = 0"
     lhs_str, rhs_str = [part.strip() for part in raw_eq.split("=", 1)]
 
     def _eval_at(val: complex) -> complex:
-        env = {unknown: val, "math": math}
-        lhs_v = eval(compile(ast.parse(lhs_str, mode="eval"), "<lhs>", "eval"), {"__builtins__": {}}, env)
-        rhs_v = eval(compile(ast.parse(rhs_str, mode="eval"), "<rhs>", "eval"), {"__builtins__": {}}, env)
+        env = {unknown: val}
+        lhs_v = _eval_complex_ast(ast.parse(lhs_str, mode="eval").body, env)
+        rhs_v = _eval_complex_ast(ast.parse(rhs_str, mode="eval").body, env)
         return complex(lhs_v) - complex(rhs_v)
 
     if claimed_solutions is not None:
         verified = []
-        all_ok = True
+        all_ok = bool(claimed_solutions)
         for sol in claimed_solutions:
-            c_val = complex(sol)
-            residual = abs(_eval_at(c_val))
-            ok = residual <= 1e-9
+            try:
+                c_val = complex(Fraction(str(sol))) if "/" in str(sol) else complex(float(sol))
+                residual = abs(_eval_at(c_val))
+                ok = residual <= 1e-9
+            except Exception:
+                residual = float("inf")
+                ok = False
             all_ok = all_ok and ok
             verified.append({
                 "claimed": str(sol),
-                "residual": round(residual, 12),
+                "residual": round(residual, 12) if math.isfinite(residual) else None,
                 "checked_by_substitution": ok,
             })
         return {
@@ -158,15 +250,36 @@ def solve_algebraic_equation(
         sym_var = sp.Symbol(unknown)
         lhs_sym = sp.sympify(lhs_str)
         rhs_sym = sp.sympify(rhs_str)
+        if sp.simplify(lhs_sym - rhs_sym) == 0:
+            return {
+                "equation": equation,
+                "unknown": unknown,
+                "status": "IDENTITY_ALL_REALS",
+                "solutions": [],
+                "coherence_index": 1.0,
+                "confidence_score": "100.0%",
+                "deterministic_status": DeterministicStatus.VERIFIED_COMPUTED_PASS.value,
+            }
         sols = sp.solve(sp.Eq(lhs_sym, rhs_sym), sym_var)
         checked = []
         for s in sols:
             sub_diff = sp.simplify((lhs_sym - rhs_sym).subs(sym_var, s))
             ok = sub_diff == 0
-            checked.append({
-                "solution": str(s),
-                "checked_by_substitution": bool(ok),
-            })
+            if ok:
+                checked.append({
+                    "solution": str(s),
+                    "checked_by_substitution": True,
+                })
+        if not checked:
+            return {
+                "equation": equation,
+                "unknown": unknown,
+                "status": "NO_SOLUTION_FOUND",
+                "solutions": [],
+                "coherence_index": 0.0,
+                "confidence_score": "0.0%",
+                "deterministic_status": DeterministicStatus.NEEDS_REVIEW.value,
+            }
         return {
             "equation": equation,
             "unknown": unknown,
@@ -227,8 +340,8 @@ def solve_algebraic_equation(
             "unknown": unknown,
             "status": "SOLVED" if unique_solutions else "NO_SOLUTION_FOUND",
             "solutions": unique_solutions,
-            "coherence_index": 1.0 if unique_solutions else 0.5,
-            "confidence_score": "100.0%" if unique_solutions else "50.0%",
+            "coherence_index": 1.0 if unique_solutions else 0.0,
+            "confidence_score": "100.0%" if unique_solutions else "0.0%",
             "deterministic_status": (
                 DeterministicStatus.VERIFIED_COMPUTED_PASS.value
                 if unique_solutions
@@ -250,7 +363,8 @@ def solve_algebraic_equation(
 def validate_claim_open_boundary(claim: str, context: str = "general_domain") -> ValidationReceipt:
     """
     Open-boundary claim validator (zero proprietary formulas).
-    Checks embedded arithmetic equations, algebraic expressions, and speculative divination flags.
+    Checks embedded arithmetic equations, conditional algebraic claims, and speculative divination flags.
+    Unchecked claims are marked NEEDS_REVIEW with is_valid=False and coherence_index=0.0.
     """
     checks: List[Dict[str, Any]] = []
     has_failure = False
@@ -265,11 +379,53 @@ def validate_claim_open_boundary(claim: str, context: str = "general_domain") ->
             "reason": "Speculative divination / unverifiable future-telling claim intercepted.",
         })
 
-    for match in _ARITH_EQUATION_RE.finditer(claim or ""):
+    normalized_claim = _normalize_math_notation(claim or "")
+
+    # 1. Check conditional algebraic claims such as "If x + 2 = 5 then x = 3"
+    algebra_spans: List[tuple[int, int]] = []
+    for m_alg in _IF_THEN_EQ_RE.finditer(normalized_claim):
+        eq_part = m_alg.group(1).strip()
+        var_name = m_alg.group(2).strip()
+        claimed_val = m_alg.group(3).strip()
+        alg_res = solve_algebraic_equation(eq_part, unknown=var_name, claimed_solutions=[claimed_val])
+        algebra_spans.append((m_alg.start(), m_alg.end()))
+        if alg_res["deterministic_status"] == DeterministicStatus.VERIFIED_COMPUTED_PASS.value:
+            has_pass = True
+            checks.append({
+                "kind": "algebraic_substitution",
+                "expression": f"If {eq_part} then {var_name} = {claimed_val}",
+                "verdict": "PROVEN",
+            })
+        else:
+            has_failure = True
+            checks.append({
+                "kind": "algebraic_substitution",
+                "expression": f"If {eq_part} then {var_name} = {claimed_val}",
+                "verdict": "FAIL",
+            })
+
+    # Mask out already-checked algebraic spans and any clause where an equation contains a letter/variable
+    masked_for_arith = list(normalized_claim)
+    for a, b in algebra_spans:
+        for idx in range(a, b):
+            masked_for_arith[idx] = " "
+    masked_str = "".join(masked_for_arith)
+
+    for match in _ARITH_EQUATION_RE.finditer(masked_str):
         lhs_src = match.group(1).strip()
         op = match.group(2)
         rhs_src = match.group(3).strip()
-        if not lhs_src:
+        # Verify that immediately preceding token before lhs is not a variable + operator (e.g., "x + 2 = 5")
+        prefix = masked_str[:match.start()].rstrip()
+        if prefix and (
+            re.search(r"[A-Za-z_]\s*[-+*/^]$", prefix)
+            or (lhs_src[:1] in "+-*/^" and re.search(r"[A-Za-z_\d]$", prefix))
+        ):
+            continue
+        if not lhs_src or not re.search(r"\d", lhs_src):
+            continue
+        # Require an operator on the LHS (or explicit == / != / ≠) so bare numbers aren't misread
+        if op == "=" and not re.search(r"[-+*/^]", lhs_src.lstrip("+-")):
             continue
         try:
             lhs_val = _eval_exact_ast(ast.parse(lhs_src.replace("^", "**"), mode="eval").body)
@@ -286,6 +442,14 @@ def validate_claim_open_boundary(claim: str, context: str = "general_domain") ->
                 "computed_exact": str(lhs_val),
                 "claimed": str(rhs_val),
                 "verdict": "PROVEN" if holds else "FAIL",
+            })
+        except ZeroDivisionError:
+            has_failure = True
+            checks.append({
+                "kind": "exact_arithmetic",
+                "expression": f"{lhs_src} {op} {rhs_src}",
+                "verdict": "FAIL",
+                "reason": "Division by zero.",
             })
         except Exception:
             continue
@@ -304,8 +468,8 @@ def validate_claim_open_boundary(claim: str, context: str = "general_domain") ->
         coherence = 1.0
     else:
         status = DeterministicStatus.NEEDS_REVIEW.value
-        is_valid = True
-        coherence = 0.85
+        is_valid = False
+        coherence = 0.0
 
     digest_input = f"{claim}|{status}|{coherence}|{len(checks)}"
     receipt_hash = hashlib.sha256(digest_input.encode("utf-8")).hexdigest()[:16]
@@ -409,7 +573,7 @@ class PublicStepLedger:
         else:
             seal = "PARTIALLY_VERIFIED"
             status = DeterministicStatus.NEEDS_REVIEW.value
-            coherence = 0.85
+            coherence = 0.0
 
         return {
             "session": self.session_id,
@@ -456,38 +620,58 @@ def evaluate_bft_epistemic_quorum(
     contradiction: float = 0.0,
 ) -> Dict[str, Any]:
     """
-    Public 4-Tier Byzantine Fault Tolerant (BFT) Epistemic Consensus Classifier.
-    Classifies agent proposals into QATI, ZANNI_GHALIB, SHAKK, or WAHM using
-    normalized confidence-to-contradiction ratios.
+    Public 4-Tier Epistemic Consensus Classifier.
+    Requires a machine-verified check (VERIFIED_COMPUTED_PASS) before any proposal
+    can reach QATI or ZANNI_GHALIB or persist to the ledger. Unchecked proposals
+    cannot self-certify as QATI.
     """
     conf_clamped = max(0.0, min(1.0, float(confidence)))
     contra_clamped = max(0.0, float(contradiction))
     effective_p = round(conf_clamped / (1.0 + contra_clamped), 4)
 
     open_check = validate_claim_open_boundary(proposal)
-    if not open_check.is_valid:
+    if open_check.deterministic_status in (
+        DeterministicStatus.REJECTED_HALLUCINATION.value,
+        DeterministicStatus.BOUNDARY_BREACH.value,
+    ):
         effective_p = 0.0
-
-    if effective_p >= 0.98 and contra_clamped < 0.01:
+        tier = EpistemicTier.WAHM.value
+        verdict = "HALLUCINATION_OR_CONTRADICTION_VETO"
+        can_persist = False
+        is_vetoed = True
+        det_status = DeterministicStatus.BOUNDARY_BREACH.value
+    elif open_check.deterministic_status == DeterministicStatus.NEEDS_REVIEW.value:
+        # Unchecked claim: an agent cannot self-certify an unchecked claim as QATI or persist it
+        effective_p = 0.0
+        tier = EpistemicTier.SHAKK.value
+        verdict = "UNVERIFIED_REQUIRES_MACHINE_CHECK"
+        can_persist = False
+        is_vetoed = False
+        det_status = DeterministicStatus.NEEDS_REVIEW.value
+    elif effective_p >= 0.98 and contra_clamped < 0.01:
         tier = EpistemicTier.QATI.value
         verdict = "DEFINITIVE_CERTAINTY"
         can_persist = True
         is_vetoed = False
+        det_status = DeterministicStatus.VERIFIED_COMPUTED_PASS.value
     elif effective_p >= 0.70:
         tier = EpistemicTier.ZANNI_GHALIB.value
         verdict = "PREPONDERANT_CONJECTURE"
         can_persist = True
         is_vetoed = False
+        det_status = DeterministicStatus.VERIFIED_COMPUTED_PASS.value
     elif effective_p >= 0.40:
         tier = EpistemicTier.SHAKK.value
         verdict = "EQUIPROBABLE_DOUBT"
         can_persist = False
         is_vetoed = False
+        det_status = DeterministicStatus.NEEDS_REVIEW.value
     else:
         tier = EpistemicTier.WAHM.value
         verdict = "HALLUCINATION_OR_CONTRADICTION_VETO"
         can_persist = False
         is_vetoed = True
+        det_status = DeterministicStatus.BOUNDARY_BREACH.value
 
     return {
         "agent_id": agent_id,
@@ -502,9 +686,5 @@ def evaluate_bft_epistemic_quorum(
             if is_vetoed
             else ("COMMIT_TO_LEDGER" if can_persist else "STAGE_FOR_CORROBORATION")
         ),
-        "deterministic_status": (
-            DeterministicStatus.BOUNDARY_BREACH.value
-            if is_vetoed
-            else DeterministicStatus.VERIFIED_COMPUTED_PASS.value
-        ),
+        "deterministic_status": det_status,
     }

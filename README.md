@@ -63,7 +63,7 @@ Add the following to your MCP configuration file (`claude_desktop_config.json`, 
 
 ---
 
-## Exposed MCP Tools (9 Deterministic Tools)
+## Exposed MCP Tools (10 Deterministic Tools)
 
 | Tool Name | Description |
 | :--- | :--- |
@@ -76,6 +76,7 @@ Add the following to your MCP configuration file (`claude_desktop_config.json`, 
 | `zk_verify_receipt` | Generates a SHA-256 cryptographic commitment receipt over a verified claim (or requests an R1CS proof from the Sovereign Enclave). |
 | `epistemic_consensus` | Evaluates multi-agent proposals on the 4-tier BFT epistemic lattice (`QATI`, `ZANNI_GHALIB`, `SHAKK`, `WAHM`). |
 | `enclave_status` | Reports server health, active execution tier, and `SOVEREIGN_VAULTED_SAFE` IP protection status. |
+| `onexi_payment_gateway` | ONE XI Technologies by Aalimbooks International — Multi-Rail Payment Gateway & Unified `Inter Tight` Starfield Checkout MCP (`gateway_status`, `list_checkout_catalog`, `create_checkout_session`, `render_checkout_html`). |
 
 ---
 

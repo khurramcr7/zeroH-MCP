@@ -318,3 +318,63 @@ def test_cli_end_to_end_json_and_status() -> None:
     claim_data = json.loads(proc_claim.stdout)
     assert claim_data["deterministic_status"] == "VERIFIED_COMPUTED_PASS"
     assert claim_data["is_valid"] is True
+
+
+# ---------------------------------------------------------------------------
+# 9. Regression Suite: Unicode Operators, Commas, Conditional Algebra,
+#    Unchecked Claims, Inconsistent Equations, and BFT Self-Certification
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "claim,expected_valid,expected_status,expected_coherence",
+    [
+        ("14,266 + 218 = 14,484", True, "VERIFIED_COMPUTED_PASS", 1.0),
+        ("3 × 4 = 12", True, "VERIFIED_COMPUTED_PASS", 1.0),
+        ("10 ÷ 2 = 5", True, "VERIFIED_COMPUTED_PASS", 1.0),
+        ("If x + 2 = 5 then x = 3", True, "VERIFIED_COMPUTED_PASS", 1.0),
+        ("If x + 2 = 5 then x = 9", False, "REJECTED_HALLUCINATION", 0.0),
+        ("5 × 4 = 4", False, "REJECTED_HALLUCINATION", 0.0),
+        ("10 ÷ 2 = 2", False, "REJECTED_HALLUCINATION", 0.0),
+        ("The root of هبط is ح-ب-ط", False, "NEEDS_REVIEW", 0.0),
+        ("The Qur’an has 6,237 verses", False, "NEEDS_REVIEW", 0.0),
+    ],
+)
+def test_claude_audit_regression_claims(
+    claim: str, expected_valid: bool, expected_status: str, expected_coherence: float
+) -> None:
+    client = ZeroHClient()
+    res = client.validate(claim)
+    assert res["is_valid"] is expected_valid, f"Claim failed: {claim} -> {res}"
+    assert res["deterministic_status"] == expected_status
+    assert res["coherence_index"] == expected_coherence
+
+
+def test_inconsistent_equation_and_irrational_and_bft_unverified() -> None:
+    # 1. x = x + 1 has no solution; must not come back SOLVED at 100%
+    no_sol = solve_algebraic_equation("x = x + 1", unknown="x")
+    assert no_sol["status"] == "NO_SOLUTION_FOUND"
+    assert no_sol["solutions"] == []
+    assert no_sol["coherence_index"] == 0.0
+    assert no_sol["deterministic_status"] == "NEEDS_REVIEW"
+
+    # 2. √2 must not be labelled REJECTED_HALLUCINATION
+    sqrt2 = compute_exact("√2")
+    assert sqrt2["deterministic_status"] != "REJECTED_HALLUCINATION"
+
+    # 3. Unchecked claim cannot self-certify as QATI or persist to ledger
+    client = ZeroHClient()
+    unverified_bft = client.epistemic_consensus(
+        agent_id="self_cert_agent",
+        proposal="The Qur’an has 6,237 verses",
+        confidence=1.0,
+        contradiction=0.0,
+    )
+    assert unverified_bft["tier"] != "QATI"
+    assert unverified_bft["can_persist_to_ledger"] is False
+    assert unverified_bft["deterministic_status"] == "NEEDS_REVIEW"
+
+    # 4. Configured enclave fallback warning when unreachable
+    bridge = SovereignEnclaveBridge(api_url="http://127.0.0.1:59999", timeout=0.2)
+    fb_res = bridge.validate_claim("3 × 4 = 12")
+    assert fb_res.get("enclave_fallback") is True
+    assert "unreachable" in fb_res.get("enclave_warning", "")
+

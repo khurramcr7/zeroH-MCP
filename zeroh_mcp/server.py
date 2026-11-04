@@ -23,6 +23,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Callable, Dict, List, Optional
 
 from .enclave_bridge import SovereignEnclaveBridge
+from .payment_gateway import handle_onexi_payment_gateway, load_checkout_html
 
 if sys.platform == "win32":
     try:
@@ -218,6 +219,33 @@ TOOLS: List[Dict[str, Any]] = [
         ),
         "inputSchema": _schema({}),
     },
+    {
+        "name": "onexi_payment_gateway",
+        "description": (
+            "ONE XI Technologies by Aalimbooks International — Sovereign Multi-Rail Payment Gateway & Unified Checkout MCP: "
+            "Manages all 16 Polar.sh + Stripe 3D-Secure global checkout links ($15 to $120,000 USD), "
+            "Payoneer Global Treasury, Meezan Bank Corporate IBAN (PK40MEZN0008310104515858), "
+            "Web3 USDT/USDC Treasury, and renders the unified Inter Tight Starfield ONE XI Checkout HTML."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "gateway_status",
+                        "list_checkout_catalog",
+                        "create_checkout_session",
+                        "render_checkout_html",
+                    ],
+                },
+                "tier_id": {"type": "string"},
+                "product_id": {"type": "string"},
+                "amount_usd": {"type": "number"},
+                "customer_email": {"type": "string"},
+            },
+            required=["action"],
+        ),
+    },
 ]
 
 HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
@@ -254,6 +282,7 @@ HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
         contradiction=float(a.get("contradiction", 0.0)),
     ),
     "enclave_status": lambda _a: _BRIDGE.enclave_status(),
+    "onexi_payment_gateway": lambda a: handle_onexi_payment_gateway(a),
 }
 
 
@@ -368,7 +397,16 @@ def serve_http(host: str = "127.0.0.1", port: int = 8090) -> None:
 
     class MCPHTTPHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
-            if self.path in ("/", "/health"):
+            clean_path = self.path.split("?", 1)[0]
+            if clean_path in ("/checkout", "/pricing", "/book-checkout", "/checkout/payoneer", "/checkout/mizan", "/checkout/portal"):
+                html = load_checkout_html().encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store, must-revalidate")
+                self.send_header("Content-Length", str(len(html)))
+                self.end_headers()
+                self.wfile.write(html)
+            elif self.path in ("/", "/health"):
                 body = json.dumps(_BRIDGE.enclave_status(), indent=2).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
