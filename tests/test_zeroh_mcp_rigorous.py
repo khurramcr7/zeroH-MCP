@@ -270,7 +270,7 @@ def test_live_stdio_subprocess_jsonrpc_protocol() -> None:
 
     assert by_id[1]["result"]["serverInfo"]["name"] == "zeroh-mcp"
     assert by_id[2]["result"] == {}
-    assert len(by_id[3]["result"]["tools"]) == 9
+    assert len(by_id[3]["result"]["tools"]) == 10
 
     call_res = json.loads(by_id[4]["result"]["content"][0]["text"])
     assert call_res["deterministic_status"] == "VERIFIED_COMPUTED_PASS"
