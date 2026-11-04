@@ -51,12 +51,14 @@ h1{font:200 clamp(44px,8vw,72px)/1.05 var(--font);letter-spacing:-.02em;margin:7
 .price small{display:block;font:300 12px/1.4 var(--font);color:var(--dim);margin-top:4px}
 @media (max-width:480px){.price{font-size:21px}.name{font-size:16px}}
 
-.pay{margin-top:44px;display:grid;gap:26px}
+.pay{margin-top:44px;display:grid;gap:22px}
 .field{display:block}
 .field span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .field input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line-hi);color:var(--ink);font:300 18px var(--font);padding:10px 0;border-radius:0}
 .field input::placeholder{color:var(--dim)}
 .field input:focus{outline:none;border-bottom-color:#fff}
+.extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:560px){.extra-grid{grid-template-columns:1fr}}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
 .pill{display:inline-flex;align-items:center;gap:10px;padding:14px 30px;border-radius:999px;border:1px solid var(--line-hi);background:rgba(255,255,255,.03);color:var(--ink);font:400 16px var(--font);text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
 .pill:hover{background:rgba(255,255,255,.08);border-color:#fff}
@@ -64,6 +66,9 @@ h1{font:200 clamp(44px,8vw,72px)/1.05 var(--font);letter-spacing:-.02em;margin:7
 .pill.solid:hover{background:#fff}
 .meta{font-size:13px;color:var(--dim);margin:0}
 .meta b{font-weight:400;color:var(--soft);letter-spacing:.04em}
+.confirm-box{padding:20px 22px;border:1px solid var(--line-hi);border-radius:18px;background:rgba(255,255,255,.04);display:grid;gap:10px}
+.confirm-box h3{margin:0;font:400 18px/1.3 var(--font);color:#fff}
+.confirm-box p{margin:0;font-size:14px;color:var(--soft)}
 
 details{margin-top:40px;border-top:1px solid var(--line)}
 summary{list-style:none;cursor:pointer;padding:20px 0;color:var(--soft);display:flex;justify-content:space-between;align-items:center}
@@ -105,11 +110,49 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     <label class="field" for="email"><span>Email</span>
       <input id="email" type="email" autocomplete="email" placeholder="Email for receipt and API key">
     </label>
+
+    <div id="ent-fields" class="extra-grid" hidden>
+      <label class="field" for="ent-org"><span>Organization</span>
+        <input id="ent-org" type="text" autocomplete="organization" placeholder="Hospital, company or institution">
+      </label>
+      <label class="field" for="ent-name"><span>Contact Name / Phone</span>
+        <input id="ent-name" type="text" autocomplete="name" placeholder="Your name or WhatsApp number">
+      </label>
+    </div>
+
+    <div id="cod-fields" style="display:grid;gap:18px" hidden>
+      <div class="extra-grid">
+        <label class="field" for="cod-name"><span>Full Name</span>
+          <input id="cod-name" type="text" autocomplete="name" placeholder="Full name for courier delivery">
+        </label>
+        <label class="field" for="cod-phone"><span>Mobile / WhatsApp (Pakistan)</span>
+          <input id="cod-phone" type="tel" autocomplete="tel" placeholder="03xx-xxxxxxx (for COD confirmation)">
+        </label>
+      </div>
+      <label class="field" for="cod-addr"><span>Street Address &amp; City</span>
+        <input id="cod-addr" type="text" autocomplete="street-address" placeholder="House / street address and city (Lahore, Karachi, Islamabad…)">
+      </label>
+      <label class="field" for="cod-books"><span>Book Title(s)</span>
+        <input id="cod-books" type="text" placeholder="Book title(s) or catalogue SKU (optional)">
+      </label>
+    </div>
+
     <div class="actions">
       <a class="pill solid" id="pay-card" href="#">Pay $49 →</a>
+      <a class="pill" id="pay-card-alt" href="#" hidden>Pay by Card →</a>
       <a class="pill" id="wa-order" href="#">Order on WhatsApp</a>
     </div>
-    <p class="meta" id="pay-note">Secure card payment by Polar and Stripe. Visa, Mastercard, Amex, Apple Pay, Google Pay.</p>
+
+    <div id="confirm-box" class="confirm-box" hidden>
+      <h3 id="confirm-title">Request Received</h3>
+      <p id="confirm-text"></p>
+      <div class="actions" style="margin-top:4px">
+        <a class="pill solid" id="confirm-link" href="#" target="_blank" rel="noopener">Open Official B2B Invoice →</a>
+        <a class="pill" id="confirm-wa" href="#" target="_blank" rel="noopener">Confirm on WhatsApp</a>
+      </div>
+    </div>
+
+    <p class="meta" id="pay-note">Secure card payment by Polar and Stripe. Visa, Mastercard, Amex, Apple Pay, Google Pay. Your API license key is issued automatically upon payment.</p>
     <p class="meta">Order reference <b id="ref"></b></p>
   </div>
 
@@ -130,7 +173,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
 (function(){
   "use strict";
   var P = "https://buy.polar.sh/";
-  // Every Polar link below was opened and checked: product name and price match.
+  // Every Polar link below was opened and checked: product name, price and 1-to-1 License Key benefit match.
   var L = {
     PRO49:  P+"polar_cl_yiaY2QaaJrj4WuWm1bpQWOIPNDogghaLT2A0o0JczDW",
     PACK99: P+"polar_cl_Gz9p54IMeHEHkhJIbopPTKCX6LtlT3CI9isWR4PruOa",
@@ -149,49 +192,52 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     CORP1500:P+"polar_cl_mxNmmpL5zKWLFXrBBzMu7C1CEeM00enlnf0jk27GYzr",
     PULSE120K:P+"polar_cl_pByY3kDswhIa0hC80Ua8Gjc1Mo4gi9XmzA16j21ZyhD"
   };
-  function plan(id,g,name,price,unit,desc,url,inv){ return {id:id,g:g,name:name,price:price,unit:unit,desc:desc,url:url,invoice:!!inv}; }
-  var SELF="Self-serve", ENT="Clinical & enterprise", TEAM="Teams & enterprise", DIG="Digital editions", INST="Institutions";
+  function plan(id,g,name,price,unit,desc,url,inv,pkr){ return {id:id,g:g,name:name,price:price,unit:unit,desc:desc,url:url,invoice:!!inv,pkr:pkr||""}; }
+  var SELF="Self-serve (instant card & license key)", ENT="Clinical & enterprise (pilot or invoice)", TEAM="Teams & enterprise (pilot or invoice)", DIG="Digital editions (instant download)", PKCOD="Pakistan printed books (Cash on Delivery & Meezan Raast)", INST="Institutions & API";
   var PL = {
     pro49:  plan("FAST_49_PASS",SELF,"Pro Pass",49,"one-time","API key, cloud workspace, 5,000 credits",L.PRO49),
     pack99: plan("FAST_99_AUDIT",SELF,"Pro Compute Pack",99,"one-time","Extra simulation and API compute",L.PACK99),
     team199:plan("TEAM_199",SELF,"Team License",199,"one-time","5 seats and 100,000 API tokens",L.TEAM199),
     api250: plan("FAST_TRACK_250_SPRINT",SELF,"Batch API Credits",250,"one-time","250,000 compute tokens",L.API250),
-    pulse:  plan("PULSE_PER_PROCEDURE_SIMULATION",ENT,"PULSE Clinical Simulation",350,"per patient","TAVR sizing and coronary vFFR twin",L.PULSE350),
-    gen5k:  plan("GENESIS_STARTER_BIOPHARMA_MONTHLY",ENT,"GENESIS R&D Starter",5000,"per month","10,000 variant predictions a month",L.GEN5000),
-    gen50k: plan("GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY",ENT,"GENESIS Unlimited",50000,"per month","Unlimited variant screening",L.GEN50K),
-    pulse120k: plan("PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",ENT,"PULSE Network License",120000,"per year","Whole hospital network, card or invoice",L.PULSE120K),
-    qsdk:   plan("QUANTUM_AUDIT_2500",TEAM,"Quantum Compiler SDK",2500,"one-time","Container image and cloud API key",L.QSDK2500),
-    ent:    plan("CHIRAL_PRO_4950",TEAM,"Enterprise License",4950,"one-time","Multi-seat SaaS, API keys and SDK",L.ENT4950),
-    qseat:  plan("QUANTUM_SUITE_COMPILER_SEAT_ANNUAL",TEAM,"Quantum Compiler Seat",25000,"per year","Annual developer seat",L.QSEAT25K),
+    pulse:  plan("PULSE_PER_PROCEDURE_SIMULATION",SELF,"PULSE Clinical Simulation",350,"per patient","TAVR sizing and coronary vFFR twin",L.PULSE350),
+    gen5k:  plan("GENESIS_STARTER_BIOPHARMA_MONTHLY",ENT,"GENESIS R&D Starter",5000,"per month","10,000 variant predictions a month — pilot or invoice",L.GEN5000,true),
+    gen50k: plan("GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY",ENT,"GENESIS Unlimited",50000,"per month","Unlimited variant screening — pilot or invoice",L.GEN50K,true),
+    pulse120k: plan("PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",ENT,"PULSE Network License",120000,"per year","Whole hospital network — pilot, contract or invoice",L.PULSE120K,true),
+    qsdk:   plan("QUANTUM_AUDIT_2500",TEAM,"Quantum Compiler SDK",2500,"one-time","Container image and cloud API key — pilot or invoice",L.QSDK2500,true),
+    ent:    plan("CHIRAL_PRO_4950",TEAM,"Enterprise License",4950,"one-time","Multi-seat SaaS, API keys and SDK — pilot or invoice",L.ENT4950,true),
+    qseat:  plan("QUANTUM_SUITE_COMPILER_SEAT_ANNUAL",TEAM,"Quantum Compiler Seat",25000,"per year","Annual developer seat — pilot or invoice",L.QSEAT25K,true),
     book15: plan("BOOK_15_SINGLE",DIG,"Single E-Book",15,"one-time","Searchable PDF, instant download",L.BOOK15),
     book29: plan("BOOK_29_DIGITAL",DIG,"20-Volume Collection",29,"one-time","20 bilingual PDF e-books",L.BOOK29),
+    book_cod1: plan("BOOK_COD_SINGLE_PKR",PKCOD,"Printed Hardcover (Pakistan COD)",16,"Cash on Delivery","Printed book delivered anywhere in Pakistan — pay cash on delivery or Meezan Raast","#cod",true,"Rs. 4,400"),
+    book_cod5: plan("BOOK_COD_5PACK_PKR",PKCOD,"5-Book Hardcover Set (Pakistan COD)",55,"Cash on Delivery","Any 5 classical & bilingual hardcover editions — free courier delivery across Pakistan","#cod",true,"Rs. 15,000"),
     ocr:    plan("TURATH_150_SPRINT",INST,"OCR & Corpus Credits",150,"one-time","50,000 OCR and indexing credits",L.OCR150),
     seat:   plan("UNLIMITED_499_PASS",INST,"Institutional Library Seat",499,"one-time","Multi-seat library and e-book archive",L.SEAT499),
-    corpus: plan("TURATH_PILOT_1500",INST,"Corpus API License",1500,"one-time","Enterprise KutubLink API key",L.CORP1500)
+    corpus: plan("TURATH_PILOT_1500",INST,"Corpus API License",1500,"per year","Annual KutubLink API key — pilot or invoice",L.CORP1500,true)
   };
-  var BOOKS = [PL.book15,PL.book29,PL.ocr,PL.seat,PL.corpus];
+  var BOOKS = [PL.book15,PL.book29,PL.book_cod1,PL.book_cod5,PL.ocr,PL.seat,PL.corpus];
   var BRANDS = {
-    onexi: {name:"ONE XI", domain:"onexi.tech", home:"https://onexi.tech", sub:"Pick a plan. Pay by card in a minute.",
+    onexi: {name:"ONE XI", domain:"onexi.tech", home:"https://onexi.tech", sub:"Self-serve passes activate immediately by card. Enterprise plans start with a pilot or invoice.",
       nav:[["Chat","https://onexi.tech"],["Bio","https://www.onexibio.com/"]],
-      plans:[PL.pro49,PL.pack99,PL.team199,PL.api250,PL.qsdk,PL.ent,PL.qseat]},
-    bio: {name:"ONE XI BIO", domain:"onexibio.com", home:"https://www.onexibio.com/", sub:"Pick a plan. Pay by card in a minute.",
+      plans:[PL.pro49,PL.pack99,PL.team199,PL.api250,PL.qsdk,PL.ent,PL.qseat], lead:true},
+    bio: {name:"ONE XI BIO", domain:"onexibio.com", home:"https://www.onexibio.com/", sub:"Self-serve passes activate immediately by card. Clinical & biopharma plans start with a pilot or invoice.",
       nav:[["Pulse","https://www.onexibio.com/pulse"],["Genesis","https://www.onexibio.com/genesis"],["ONE XI","https://onexi.tech"]],
       plans:[PL.pro49,PL.pack99,PL.team199,PL.api250,PL.pulse,PL.gen5k,PL.gen50k,PL.pulse120k], lead:true},
-    aalim: {name:"AALIM BOOKS", domain:"aalimbooksint.com", home:"https://aalimbooksint.com", sub:"Digital editions and library access. Printed books are in the shop.",
-      nav:[["Shop","https://aalimbooksint.com/collections/all"],["KutubLink","https://kutublink.com"]], plans:BOOKS},
-    kutublink: {name:"KUTUBLINK", domain:"kutublink.com", home:"https://kutublink.com", sub:"E-books, corpus access and API licences.",
-      nav:[["Aalim Books","https://aalimbooksint.com"]], plans:BOOKS},
-    ihp: {name:"ISLAMIC HERITAGE PRESS", domain:"islamicheritagepress.com", home:"https://islamicheritagepress.com", sub:"Digital editions and library access.",
-      nav:[["Aalim Books","https://aalimbooksint.com"]], plans:BOOKS}
+    aalim: {name:"AALIM BOOKS", domain:"aalimbooksint.com", home:"https://aalimbooksint.com", sub:"Instant digital e-books by card, or Pakistan Cash on Delivery (COD) for printed hardcovers.",
+      nav:[["Shop","https://aalimbooksint.com/collections/all"],["KutubLink","https://kutublink.com"]], plans:BOOKS, lead:true},
+    kutublink: {name:"KUTUBLINK", domain:"kutublink.com", home:"https://kutublink.com", sub:"E-books, Pakistan Cash on Delivery hardcovers, corpus access and API licences.",
+      nav:[["Aalim Books","https://aalimbooksint.com"]], plans:BOOKS, lead:true},
+    ihp: {name:"ISLAMIC HERITAGE PRESS", domain:"islamicheritagepress.com", home:"https://islamicheritagepress.com", sub:"Digital editions by card, or Pakistan Cash on Delivery (COD) for printed hardcovers.",
+      nav:[["Aalim Books","https://aalimbooksint.com"]], plans:BOOKS, lead:true}
   };
   var WA = "923305677799";
+  var LEAD_ENDPOINT = "https://onexibio.com/api/checkout/lead-capture";
   function $(id){ return document.getElementById(id); }
   function money(n){ return "$" + n.toLocaleString("en-US"); }
 
   // Which site are we on? ?site= overrides (for testing / sharing one hosted copy).
   var host = (location.hostname || "").replace(/^www\./,"");
   var params; try { params = new URLSearchParams(location.search); } catch(e){ params = {get:function(){return null;}}; }
-  var forced = (params.get("site") || (/book-checkout/.test(location.pathname || "") ? "kutublink" : "")).toLowerCase();
+  var forced = (params.get("site") || (/(book-checkout|onexi-checkout)/.test(location.pathname || "") ? "kutublink" : "")).toLowerCase();
   var byHost = {"onexi.tech":"onexi","onexibio.com":"bio","aalimbooksint.com":"aalim","kutublink.com":"kutublink","islamicheritagepress.com":"ihp","warith.io":"onexi"};
   var known = !!byHost[host];
   var key = BRANDS[forced] ? forced : (byHost[host] || (/myshopify\.com$/.test(host) ? "aalim" : "bio"));
@@ -199,6 +245,12 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
 
   var d = new Date();
   var ref = "ONX-" + d.getFullYear() + String(d.getMonth()+1).padStart(2,"0") + String(d.getDate()).padStart(2,"0") + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+
+  // Pre-fill email if passed in query string (without auto-redirecting or pre-creating any Polar session)
+  var preEmail = (params.get("email") || params.get("customer_email") || "").trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(preEmail) && !/_.*@/.test(preEmail)){
+    $("email").value = preEmail;
+  }
 
   function render(){
     document.title = B.name.replace(/\b\w+/g,function(w){return w;}) + " Checkout";
@@ -211,13 +263,14 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     B.plans.forEach(function(p){
       if (p.g !== lastG){ var gl = document.createElement("div"); gl.className = "group-label"; gl.textContent = p.g; list.appendChild(gl); lastG = p.g; }
       var row = document.createElement("label"); row.className = "row";
+      var priceDisplay = p.pkr ? (p.pkr + '<small>PKR · ' + p.unit + '</small>') : (money(p.price) + '<small>' + p.unit + '</small>');
       row.innerHTML = '<input type="radio" name="plan" id="plan-' + p.id + '" value="' + p.id + '"><span class="dot"></span>' +
         '<span><div class="name">' + p.name + '</div><div class="desc">' + p.desc + '</div></span>' +
-        '<span class="price">' + money(p.price) + '<small>' + p.unit + '</small></span>';
+        '<span class="price">' + priceDisplay + '</span>';
       list.appendChild(row);
     });
     // Old ?tier= links keep working
-    var aliases = {"15":"BOOK_15_SINGLE","29":"BOOK_29_DIGITAL","49":"FAST_49_PASS","FAST_49":"FAST_49_PASS","BOOK_49_ROYAL":"FAST_49_PASS","99":"FAST_99_AUDIT","150":"TURATH_150_SPRINT","199":"TEAM_199","LAB_199_PACK":"TEAM_199","250":"FAST_TRACK_250_SPRINT","CLINICAL_PILOT_250":"FAST_TRACK_250_SPRINT","350":"PULSE_PER_PROCEDURE_SIMULATION","PULSE_350":"PULSE_PER_PROCEDURE_SIMULATION","499":"UNLIMITED_499_PASS","BOOK_499_WAQF":"UNLIMITED_499_PASS","1500":"TURATH_PILOT_1500","2500":"QUANTUM_AUDIT_2500","4950":"CHIRAL_PRO_4950","5000":"GENESIS_STARTER_BIOPHARMA_MONTHLY","25000":"QUANTUM_SUITE_COMPILER_SEAT_ANNUAL","50000":"GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY","120000":"PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL"};
+    var aliases = {"15":"BOOK_15_SINGLE","29":"BOOK_29_DIGITAL","COD":"BOOK_COD_SINGLE_PKR","PKR":"BOOK_COD_SINGLE_PKR","4400":"BOOK_COD_SINGLE_PKR","BOOK_COD":"BOOK_COD_SINGLE_PKR","15000_PKR":"BOOK_COD_5PACK_PKR","BOOK_COD_5":"BOOK_COD_5PACK_PKR","49":"FAST_49_PASS","FAST_49":"FAST_49_PASS","BOOK_49_ROYAL":"FAST_49_PASS","99":"FAST_99_AUDIT","150":"TURATH_150_SPRINT","199":"TEAM_199","LAB_199_PACK":"TEAM_199","250":"FAST_TRACK_250_SPRINT","CLINICAL_PILOT_250":"FAST_TRACK_250_SPRINT","350":"PULSE_PER_PROCEDURE_SIMULATION","PULSE_350":"PULSE_PER_PROCEDURE_SIMULATION","499":"UNLIMITED_499_PASS","BOOK_499_WAQF":"UNLIMITED_499_PASS","1500":"TURATH_PILOT_1500","2500":"QUANTUM_AUDIT_2500","4950":"CHIRAL_PRO_4950","5000":"GENESIS_STARTER_BIOPHARMA_MONTHLY","25000":"QUANTUM_SUITE_COMPILER_SEAT_ANNUAL","50000":"GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY","120000":"PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL"};
     var q = (params.get("tier") || params.get("amount") || "").trim().toUpperCase();
     var want = aliases[q] || q;
     var el = document.getElementById("plan-" + want) || document.querySelector('input[name="plan"]');
@@ -231,34 +284,150 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     return B.plans[0];
   }
 
+  function buildPolarUrl(p, email){
+    var url = p.url;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) url += "?customer_email=" + encodeURIComponent(email);
+    return url;
+  }
+
   function update(){
-    var p = current(), email = $("email").value.trim(), pay = $("pay-card");
-    pay.hidden = p.invoice;
-    if (!p.invoice){
-      var url = p.url;
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) url += "?customer_email=" + encodeURIComponent(email);
-      pay.href = url;
-      pay.textContent = "Pay " + money(p.price) + " →";
-      $("pay-note").textContent = "Secure card payment by Polar and Stripe. Visa, Mastercard, Amex, Apple Pay, Google Pay.";
+    var p = current(), email = $("email").value.trim(), pay = $("pay-card"), alt = $("pay-card-alt");
+    var isCod = !!p.pkr;
+    var isEnt = !isCod && (p.invoice || p.price >= 1500);
+    $("confirm-box").hidden = true;
+    $("ent-fields").hidden = !isEnt;
+    $("cod-fields").hidden = !isCod;
+
+    if (isCod){
+      pay.hidden = false;
+      pay.href = "#cod-order";
+      pay.dataset.mode = "cod";
+      pay.textContent = "Place COD Order (" + p.pkr + " PKR) →";
+      alt.hidden = true;
+      $("pay-note").textContent = "Cash on Delivery across Pakistan (or instant Meezan Bank Raast / IBAN PK40MEZN0008310104515858). No international card required.";
+    } else if (isEnt){
+      pay.hidden = false;
+      pay.href = "#pilot-invoice";
+      pay.dataset.mode = "pilot";
+      pay.textContent = "Book a Pilot / Request Invoice →";
+      alt.hidden = false;
+      alt.href = buildPolarUrl(p, email);
+      alt.textContent = "Pay by Card (" + money(p.price) + ") →";
+      $("pay-note").textContent = "Enterprise & institutional plans include a guided pilot, formal B2B invoice / PO, or optional direct card settlement.";
     } else {
-      $("pay-note").textContent = "This plan is billed by invoice. Order on WhatsApp and we will send the invoice and contract.";
+      pay.hidden = false;
+      pay.href = buildPolarUrl(p, email);
+      pay.dataset.mode = "card";
+      pay.textContent = "Pay " + money(p.price) + " →";
+      alt.hidden = true;
+      $("pay-note").textContent = "Secure card payment by Polar and Stripe. Visa, Mastercard, Amex, Apple Pay, Google Pay. Your API license key is emailed automatically.";
     }
-    $("wa-order").textContent = p.price >= 5000 ? "Book a pilot on WhatsApp" : "Order on WhatsApp";
-    var lines = ["Assalamu Alaikum " + B.name + " team,", (p.price >= 5000 ? "I would like to book a pilot / contract for: " : "I would like to order: ") + p.name + " (" + money(p.price) + " " + p.unit + ")", "Order reference: " + ref];
+
+    $("wa-order").textContent = isEnt ? "Book a pilot on WhatsApp" : (isCod ? "Order COD on WhatsApp" : "Order on WhatsApp");
+    var lines = ["Assalamu Alaikum " + B.name + " team,", (isEnt ? "I would like to book a pilot / request an invoice for: " : "I would like to order: ") + p.name + " (" + (p.pkr ? p.pkr + " PKR" : money(p.price) + " " + p.unit) + ")", "Order reference: " + ref];
     if (email) lines.push("Email: " + email);
-    lines.push("Payment method / transaction ID: ");
+    if (isCod){
+      var cn = $("cod-name").value.trim(), cp = $("cod-phone").value.trim(), ca = $("cod-addr").value.trim(), cb = $("cod-books").value.trim();
+      if (cn) lines.push("Name: " + cn);
+      if (cp) lines.push("Phone: " + cp);
+      if (ca) lines.push("Delivery Address: " + ca);
+      if (cb) lines.push("Books: " + cb);
+    }
     $("wa-order").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(lines.join("\n"));
   }
   document.addEventListener("change", function(e){ if (e.target.name === "plan") update(); });
-  $("email").addEventListener("input", update);
+  ["email","ent-org","ent-name","cod-name","cod-phone","cod-addr","cod-books"].forEach(function(id){
+    var el = $(id); if (el) el.addEventListener("input", update);
+  });
 
-  $("pay-card").addEventListener("click", function(){
-    if (!B.lead || host !== "onexibio.com") return;
-    var p = current();
+  function postLead(payload){
     try {
-      var body = JSON.stringify({invoice_id: ref, storefront_domain: "REALTIME_STRIPE_POLAR_CARD", contact_email: $("email").value.trim(), tier_id: p.id, tier_title: p.name, amount_usd: p.price, action_mode: "POLAR_STRIPE_LIVE_REDIRECT"});
-      if (navigator.sendBeacon) navigator.sendBeacon("/api/checkout/lead-capture", new Blob([body], {type:"application/json"}));
+      fetch(LEAD_ENDPOINT, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(function(){});
     } catch(e){}
+  }
+
+  $("pay-card").addEventListener("click", function(e){
+    var p = current(), email = $("email").value.trim(), mode = $("pay-card").dataset.mode || "card";
+    if (mode === "cod"){
+      e.preventDefault();
+      var cn = $("cod-name").value.trim(), cp = $("cod-phone").value.trim(), ca = $("cod-addr").value.trim(), cb = $("cod-books").value.trim();
+      if (!cn || !cp || !ca){
+        if (!cn) $("cod-name").focus();
+        else if (!cp) $("cod-phone").focus();
+        else $("cod-addr").focus();
+        $("pay-note").textContent = "Please enter your name, Pakistan mobile/WhatsApp number, and delivery street address & city.";
+        return;
+      }
+      postLead({
+        invoice_id: ref,
+        storefront_domain: B.domain,
+        company_name: "Pakistan COD Book Buyer",
+        contact_name: cn,
+        contact_email: email,
+        whatsapp_phone: cp,
+        tier_id: p.id,
+        tier_title: p.name + " (" + p.pkr + " PKR)",
+        amount_usd: p.price,
+        action_mode: "PAKISTAN_BOOK_COD_ORDER",
+        notes_or_books: "Address: " + ca + (cb ? " | Books: " + cb : "")
+      });
+      $("confirm-title").textContent = "✓ Cash on Delivery Order Confirmed — " + ref;
+      $("confirm-text").textContent = "Thank you, " + cn + ". Your order for " + p.name + " (" + p.pkr + " PKR) is logged for courier dispatch to " + ca + ". We will confirm dispatch on " + cp + ".";
+      $("confirm-link").hidden = true;
+      $("confirm-wa").href = $("wa-order").href;
+      $("confirm-box").hidden = false;
+      return;
+    }
+
+    if (mode === "pilot"){
+      e.preventDefault();
+      var org = $("ent-org").value.trim() || "Enterprise Client";
+      var cname = $("ent-name").value.trim() || "Authorized Representative";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        $("email").focus();
+        $("pay-note").textContent = "Please enter your work or institutional email address to receive the pilot credentials and formal B2B invoice.";
+        return;
+      }
+      postLead({
+        invoice_id: ref,
+        storefront_domain: B.domain,
+        company_name: org,
+        contact_name: cname,
+        contact_email: email,
+        whatsapp_phone: cname,
+        tier_id: p.id,
+        tier_title: p.name,
+        amount_usd: p.price,
+        action_mode: "ENTERPRISE_PILOT_INVOICE_REQUEST",
+        notes_or_books: "Pilot & Formal B2B Invoice Requested from " + B.domain
+      });
+      var invUrl = "https://onexibio.com/invoice/" + encodeURIComponent(ref);
+      $("confirm-title").textContent = "✓ Pilot & Formal B2B Invoice Issued — " + ref;
+      $("confirm-text").textContent = "Your request for " + p.name + " (" + money(p.price) + " " + p.unit + ") has been registered for " + email + ". Our engineering desk will follow up with pilot sandbox credentials, or you may download the formal printable B2B invoice below.";
+      $("confirm-link").hidden = false;
+      $("confirm-link").href = invUrl;
+      $("confirm-wa").href = $("wa-order").href;
+      $("confirm-box").hidden = false;
+      return;
+    }
+
+    // Self-serve card click: only log lead if the user entered a real email address (blocks anonymous scanner bots)
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      postLead({
+        invoice_id: ref,
+        storefront_domain: B.domain,
+        contact_email: email,
+        tier_id: p.id,
+        tier_title: p.name,
+        amount_usd: p.price,
+        action_mode: "POLAR_STRIPE_LIVE_REDIRECT"
+      });
+    }
   });
 
   // Brand switcher only shows in previews (not on a real site)
