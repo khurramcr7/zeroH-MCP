@@ -150,12 +150,31 @@ def _resolve_api_credentials(args: Dict[str, Any]) -> Dict[str, str]:
 # Without ONEXI_POLAR_ORG_ID, no key is accepted (fail closed).
 # ------------------------------------------------------------------------------
 POLAR_VALIDATE_URL = "https://api.polar.sh/v1/customer-portal/license-keys/validate"
+DEFAULT_POLAR_ORG_ID = "54bbc8ba-b7f8-4c36-83ec-bf5530983721"
+DEFAULT_POLAR_BENEFIT_TIERS: Dict[str, str] = {
+    "70b6be4d-0dd8-413b-ab84-aeee9c87522f": "BOOK_15_SINGLE",
+    "c81ea806-a550-48f6-ae87-86a404f77d11": "BOOK_29_DIGITAL",
+    "318d048c-2fc6-4821-a7b4-a7b0d2830eb6": "FAST_49_PASS",
+    "74bb3ebb-2c3a-4e6f-b406-362299337000": "FAST_99_AUDIT",
+    "c052d670-dd1a-49fc-b0c2-b1a80c360e96": "TURATH_150_SPRINT",
+    "e600621a-a92a-4e60-a96b-1b5b818bcc7a": "LAB_199_PACK",
+    "f030119c-1744-4ade-844b-a8af9954a784": "CLINICAL_PILOT_250",
+    "f5b8e423-b936-469f-8533-fdad9600623c": "PULSE_PER_PROCEDURE_SIMULATION",
+    "4763eeba-f902-42a1-aaf8-120816cd647a": "BOOK_499_WAQF",
+    "a82e195a-f0af-4779-a728-386fc627cc2a": "TURATH_PILOT_1500",
+    "01bfd42e-dce4-4b5d-8267-ef7b21bb04af": "QUANTUM_AUDIT_2500",
+    "f031316e-6998-40a8-a3ad-3a0bec16ae69": "CHIRAL_PRO_4950",
+    "e70c5219-c818-4ad5-89a2-254382a4517c": "GENESIS_STARTER_BIOPHARMA_MONTHLY",
+    "250da7df-966b-44a1-8e47-8abd59371226": "QUANTUM_SUITE_COMPILER_SEAT_ANNUAL",
+    "eda64f5b-2d62-4b6a-9ceb-7c744c240262": "GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY",
+    "d2b4299a-4ad7-4cd9-b6e6-769ac99c7629": "PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",
+}
 _LICENSE_CACHE: Dict[str, Any] = {}
 _LICENSE_CACHE_SECONDS = 600
 
 
 def _validate_key_with_polar(api_key: str) -> Optional[Dict[str, Any]]:
-    org_id = os.environ.get("ONEXI_POLAR_ORG_ID", "").strip()
+    org_id = os.environ.get("ONEXI_POLAR_ORG_ID", DEFAULT_POLAR_ORG_ID).strip()
     if not org_id:
         return None
     req = urllib.request.Request(
@@ -184,10 +203,13 @@ def _infer_tier_from_key(api_key: str) -> Optional[str]:
     tier: Optional[str] = None
     validated = _validate_key_with_polar(api_key)
     if validated:
+        benefit_tiers = dict(DEFAULT_POLAR_BENEFIT_TIERS)
         try:
-            benefit_tiers = json.loads(os.environ.get("ONEXI_POLAR_BENEFIT_TIERS", "") or "{}")
+            custom = json.loads(os.environ.get("ONEXI_POLAR_BENEFIT_TIERS", "") or "{}")
+            if isinstance(custom, dict):
+                benefit_tiers.update(custom)
         except ValueError:
-            benefit_tiers = {}
+            pass
         mapped = benefit_tiers.get(str(validated.get("benefit_id") or ""))
         tier = mapped if mapped in ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG else "FAST_49_PASS"
     _LICENSE_CACHE[api_key] = (now, tier)

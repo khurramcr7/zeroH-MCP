@@ -167,7 +167,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     book29: plan("BOOK_29_DIGITAL",DIG,"20-Volume Collection",29,"one-time","20 bilingual PDF e-books",L.BOOK29),
     ocr:    plan("TURATH_150_SPRINT",INST,"OCR & Corpus Credits",150,"one-time","50,000 OCR and indexing credits",L.OCR150),
     seat:   plan("UNLIMITED_499_PASS",INST,"Institutional Library Seat",499,"one-time","Multi-seat library and e-book archive",L.SEAT499),
-    corpus: plan("TURATH_PILOT_1500",INST,"Corpus API License",1500,"per year","Annual KutubLink API key",L.CORP1500)
+    corpus: plan("TURATH_PILOT_1500",INST,"Corpus API License",1500,"one-time","Enterprise KutubLink API key",L.CORP1500)
   };
   var BOOKS = [PL.book15,PL.book29,PL.ocr,PL.seat,PL.corpus];
   var BRANDS = {
@@ -191,8 +191,8 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
   // Which site are we on? ?site= overrides (for testing / sharing one hosted copy).
   var host = (location.hostname || "").replace(/^www\./,"");
   var params; try { params = new URLSearchParams(location.search); } catch(e){ params = {get:function(){return null;}}; }
-  var forced = (params.get("site") || "").toLowerCase();
-  var byHost = {"onexi.tech":"onexi","onexibio.com":"bio","aalimbooksint.com":"aalim","kutublink.com":"kutublink","islamicheritagepress.com":"ihp"};
+  var forced = (params.get("site") || (/book-checkout/.test(location.pathname || "") ? "kutublink" : "")).toLowerCase();
+  var byHost = {"onexi.tech":"onexi","onexibio.com":"bio","aalimbooksint.com":"aalim","kutublink.com":"kutublink","islamicheritagepress.com":"ihp","warith.io":"onexi"};
   var known = !!byHost[host];
   var key = BRANDS[forced] ? forced : (byHost[host] || (/myshopify\.com$/.test(host) ? "aalim" : "bio"));
   var B = BRANDS[key];
@@ -243,7 +243,8 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     } else {
       $("pay-note").textContent = "This plan is billed by invoice. Order on WhatsApp and we will send the invoice and contract.";
     }
-    var lines = ["Assalamu Alaikum " + B.name + " team,", "I would like to order: " + p.name + " (" + money(p.price) + " " + p.unit + ")", "Order reference: " + ref];
+    $("wa-order").textContent = p.price >= 5000 ? "Book a pilot on WhatsApp" : "Order on WhatsApp";
+    var lines = ["Assalamu Alaikum " + B.name + " team,", (p.price >= 5000 ? "I would like to book a pilot / contract for: " : "I would like to order: ") + p.name + " (" + money(p.price) + " " + p.unit + ")", "Order reference: " + ref];
     if (email) lines.push("Email: " + email);
     lines.push("Payment method / transaction ID: ");
     $("wa-order").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(lines.join("\n"));
