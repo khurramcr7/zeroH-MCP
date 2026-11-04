@@ -24,6 +24,13 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .enclave_bridge import SovereignEnclaveBridge
 from .payment_gateway import handle_onexi_payment_gateway, load_checkout_html
+from .subscriptions import (
+    handle_onexi_aalim_scholar,
+    handle_onexi_hpc_code_sandbox,
+    handle_onexi_kutublink_turath,
+    handle_onexi_quantum_compiler,
+    handle_onexi_subscription_gate,
+)
 
 if sys.platform == "win32":
     try:
@@ -242,6 +249,138 @@ TOOLS: List[Dict[str, Any]] = [
                 "product_id": {"type": "string"},
                 "amount_usd": {"type": "number"},
                 "customer_email": {"type": "string"},
+                "public_mcp_only": {"type": "boolean"},
+            },
+            required=["action"],
+        ),
+    },
+    {
+        "name": "onexi_subscription_gate",
+        "description": (
+            "ONE XI™ Paid Subscription, License Key & Entitlement Manager MCP (onexi.tech): "
+            "Verifies ONE XI & Polar.sh subscription keys (ONEXI_API_KEY / ONEXI_LICENSE_KEY), lists public "
+            "paid subscription MCP plans ($15 to $25,000 USD; Bio tiers kept in payment gateway only), "
+            "and generates 1-click Polar.sh/Stripe, Payoneer, Meezan IBAN, and Web3 USDT checkout sessions."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "subscription_status",
+                        "list_public_subscription_plans",
+                        "verify_license_key",
+                        "upgrade_subscription",
+                    ],
+                },
+                "license_key": {"type": "string"},
+                "tier_id": {"type": "string"},
+                "customer_email": {"type": "string"},
+            },
+            required=["action"],
+        ),
+    },
+    {
+        "name": "onexi_quantum_compiler",
+        "description": (
+            "ONE XI™ Quantum Suite — Fault-Tolerant Quantum Circuit Compilation & Resource Estimator Paid MCP (onexi.tech): "
+            "100% Black-Box protected (Merkle Root e8c2800b1f74c93cbc2546293f76caa550867559e5f46992843da9fce6c66ea2: "
+            "5.4126x T-gate reduction on invsqrt, -91.34% 64-bit adder Toffoli depth, -99.49% 2048-bit adder Toffoli depth, "
+            "-60.17% QROM Toffoli reduction). Provides OpenQASM resource estimation and paid cloud compilation."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "benchmark_telemetry",
+                        "estimate_resources",
+                        "compile_circuit",
+                    ],
+                },
+                "qasm": {"type": "string"},
+                "target": {"type": "string"},
+                "license_key": {"type": "string"},
+                "customer_email": {"type": "string"},
+            },
+            required=["action"],
+        ),
+    },
+    {
+        "name": "onexi_hpc_code_sandbox",
+        "description": (
+            "ONE XI™ 8-Gate Executable Code & HPC Verification Cloud Paid MCP (onexi.tech): "
+            "Performs 8-Gate deterministic Python AST complexity, security, and SHA-256 code-seal auditing "
+            "and routes authenticated paid subscription workloads ($49/mo Pro, $199/mo Team, $499/mo Unlimited) "
+            "to the ONE XI Cloud Sandbox."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "audit_code_8gate",
+                        "cloud_hpc_execute",
+                    ],
+                },
+                "code": {"type": "string"},
+                "task": {"type": "string"},
+                "license_key": {"type": "string"},
+                "customer_email": {"type": "string"},
+            },
+            required=["action"],
+        ),
+    },
+    {
+        "name": "onexi_kutublink_turath",
+        "description": (
+            "KutubLink™ & Aalim Books Classical Corpus & Heritage Concordance Paid MCP (kutublink.com | islamicheritagepress.com/aalimbooks): "
+            "Audits Uthmani Tashkil vocalization fidelity and classical Hisab al-Jummal (Abjad) values, and connects "
+            "paid subscribers ($15, $29, $150, $499, $1,500/yr) to the 578-work (121,843,480-word) vocalized Arabic corpus cloud."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "corpus_overview",
+                        "audit_tashkil_and_abjad",
+                        "corpus_cloud_search",
+                    ],
+                },
+                "text": {"type": "string"},
+                "query": {"type": "string"},
+                "corpus": {"type": "string"},
+                "license_key": {"type": "string"},
+                "customer_email": {"type": "string"},
+            },
+            required=["action"],
+        ),
+    },
+    {
+        "name": "onexi_aalim_scholar",
+        "description": (
+            "ONE XI™ Aalim AI & Warith.io Scholarly Verification Paid MCP (warith.io | onexi.tech): "
+            "Computes exact rational Zakah obligations (1/40 = 2.5%), verifies exact rational Fara'id inheritance "
+            "share distributions, and routes paid subscription queries ($49/mo, $199/mo, $499/mo) to the 7-Gate TQA & Scholarly Cloud."
+        ),
+        "inputSchema": _schema(
+            {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "calculate_zakah_exact",
+                        "verify_faraid_shares",
+                        "scholar_cloud_ifta_tqa",
+                    ],
+                },
+                "net_zakatable_wealth": {"type": ["number", "string"]},
+                "nisab_threshold": {"type": ["number", "string"]},
+                "shares": {"type": "object"},
+                "query": {"type": "string"},
+                "madhhab_scope": {"type": "string"},
+                "license_key": {"type": "string"},
+                "customer_email": {"type": "string"},
             },
             required=["action"],
         ),
@@ -283,6 +422,11 @@ HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     ),
     "enclave_status": lambda _a: _BRIDGE.enclave_status(),
     "onexi_payment_gateway": lambda a: handle_onexi_payment_gateway(a),
+    "onexi_subscription_gate": lambda a: handle_onexi_subscription_gate(a),
+    "onexi_quantum_compiler": lambda a: handle_onexi_quantum_compiler(a),
+    "onexi_hpc_code_sandbox": lambda a: handle_onexi_hpc_code_sandbox(a),
+    "onexi_kutublink_turath": lambda a: handle_onexi_kutublink_turath(a),
+    "onexi_aalim_scholar": lambda a: handle_onexi_aalim_scholar(a),
 }
 
 

@@ -1,9 +1,11 @@
 {
   "mcpServers": {
-    "zeroh-mcp": {
+    "onexi-zeroh-mcp": {
       "command": "python",
       "args": ["-m", "zeroh_mcp.server"],
       "env": {
+        "ONEXI_API_URL": "https://onexi.tech/api",
+        "ONEXI_API_KEY": "",
         "ZEROH_API_URL": "",
         "ZEROH_API_KEY": ""
       }

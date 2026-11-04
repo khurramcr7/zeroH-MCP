@@ -24,6 +24,9 @@
       },
       "customer_email": {
         "type": "string"
+      },
+      "public_mcp_only": {
+        "type": "boolean"
       }
     },
     "required": [

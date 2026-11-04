@@ -1,0 +1,30 @@
+{
+  "name": "onexi_subscription_gate",
+  "description": "ONE XI™ Paid Subscription, License Key & Entitlement Manager MCP (onexi.tech): Verifies ONE XI & Polar.sh subscription keys (ONEXI_API_KEY / ONEXI_LICENSE_KEY), lists public paid subscription MCP plans ($15 to $25,000 USD; Bio tiers kept in payment gateway only), and generates 1-click Polar.sh/Stripe, Payoneer, Meezan IBAN, and Web3 USDT checkout sessions.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "subscription_status",
+          "list_public_subscription_plans",
+          "verify_license_key",
+          "upgrade_subscription"
+        ]
+      },
+      "license_key": {
+        "type": "string"
+      },
+      "tier_id": {
+        "type": "string"
+      },
+      "customer_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action"
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "onexi_aalim_scholar",
+  "description": "ONE XI™ Aalim AI & Warith.io Scholarly Verification Paid MCP (warith.io | onexi.tech): Computes exact rational Zakah obligations (1/40 = 2.5%), verifies exact rational Fara'id inheritance share distributions, and routes paid subscription queries ($49/mo, $199/mo, $499/mo) to the 7-Gate TQA & Scholarly Cloud.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "calculate_zakah_exact",
+          "verify_faraid_shares",
+          "scholar_cloud_ifta_tqa"
+        ]
+      },
+      "net_zakatable_wealth": {
+        "type": [
+          "number",
+          "string"
+        ]
+      },
+      "nisab_threshold": {
+        "type": [
+          "number",
+          "string"
+        ]
+      },
+      "shares": {
+        "type": "object"
+      },
+      "query": {
+        "type": "string"
+      },
+      "madhhab_scope": {
+        "type": "string"
+      },
+      "license_key": {
+        "type": "string"
+      },
+      "customer_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action"
+    ]
+  }
+}

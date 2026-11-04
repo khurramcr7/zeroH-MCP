@@ -270,7 +270,7 @@ def test_live_stdio_subprocess_jsonrpc_protocol() -> None:
 
     assert by_id[1]["result"]["serverInfo"]["name"] == "zeroh-mcp"
     assert by_id[2]["result"] == {}
-    assert len(by_id[3]["result"]["tools"]) == 10
+    assert len(by_id[3]["result"]["tools"]) == 15
 
     call_res = json.loads(by_id[4]["result"]["content"][0]["text"])
     assert call_res["deterministic_status"] == "VERIFIED_COMPUTED_PASS"
@@ -377,4 +377,140 @@ def test_inconsistent_equation_and_irrational_and_bft_unverified() -> None:
     fb_res = bridge.validate_claim("3 × 4 = 12")
     assert fb_res.get("enclave_fallback") is True
     assert "unreachable" in fb_res.get("enclave_warning", "")
+
+
+def test_onexi_public_paid_subscription_mcps_and_bio_payment_only_policy() -> None:
+    # 1. Subscription Gate: status & public plans (Bio excluded from public MCP plans, kept in payment gateway)
+    sub_status_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 101,
+            "method": "tools/call",
+            "params": {"name": "onexi_subscription_gate", "arguments": {"action": "subscription_status"}},
+        }
+    )
+    sub_status = json.loads(sub_status_resp["result"]["content"][0]["text"])
+    assert sub_status["bio_public_mcp_exposed"] is False
+    assert sub_status["bio_mcp_policy"] == "PAYMENT_ONLY_NOT_PUBLIC_YET"
+    assert sub_status["available_public_plans_count"] == 12
+
+    plans_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 102,
+            "method": "tools/call",
+            "params": {"name": "onexi_subscription_gate", "arguments": {"action": "list_public_subscription_plans"}},
+        }
+    )
+    plans = json.loads(plans_resp["result"]["content"][0]["text"])
+    assert "PULSE_PER_PROCEDURE_SIMULATION" not in plans["public_mcp_plans"]
+    assert "GENESIS_STARTER_BIOPHARMA_MONTHLY" not in plans["public_mcp_plans"]
+    assert "FAST_49_PASS" in plans["public_mcp_plans"]
+    assert "QUANTUM_AUDIT_2500" in plans["public_mcp_plans"]
+
+    # 2. Payment Gateway STILL keeps all 16 tiers (including Bio payment tiers) for settlement
+    gw_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 103,
+            "method": "tools/call",
+            "params": {"name": "onexi_payment_gateway", "arguments": {"action": "list_checkout_catalog"}},
+        }
+    )
+    gw_cat = json.loads(gw_resp["result"]["content"][0]["text"])
+    assert gw_cat["products_count"] == 16
+    assert gw_cat["catalog"]["PULSE_PER_PROCEDURE_SIMULATION"]["mcp_visibility"] == "PAYMENT_ONLY_NOT_PUBLIC_YET"
+    assert gw_cat["catalog"]["GENESIS_STARTER_BIOPHARMA_MONTHLY"]["mcp_visibility"] == "PAYMENT_ONLY_NOT_PUBLIC_YET"
+    assert gw_cat["catalog"]["FAST_49_PASS"]["mcp_visibility"] == "PUBLIC_PAID_MCP"
+
+    # 3. Quantum Compiler: benchmark telemetry (free) vs compile_circuit (paid subscription gate)
+    q_bench_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 104,
+            "method": "tools/call",
+            "params": {"name": "onexi_quantum_compiler", "arguments": {"action": "benchmark_telemetry"}},
+        }
+    )
+    q_bench = json.loads(q_bench_resp["result"]["content"][0]["text"])
+    assert q_bench["merkle_priority_seal"] == "e8c2800b1f74c93cbc2546293f76caa550867559e5f46992843da9fce6c66ea2"
+
+    q_unsub_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 105,
+            "method": "tools/call",
+            "params": {"name": "onexi_quantum_compiler", "arguments": {"action": "compile_circuit", "qasm": "qreg q[4];\nccx q[0],q[1],q[2];"}},
+        }
+    )
+    q_unsub = json.loads(q_unsub_resp["result"]["content"][0]["text"])
+    assert q_unsub["status"] == "SUBSCRIPTION_REQUIRED"
+    assert "polar_stripe_card_checkout" in q_unsub["checkout_session"]["one_click_checkout_urls"]
+
+    q_sub_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 106,
+            "method": "tools/call",
+            "params": {
+                "name": "onexi_quantum_compiler",
+                "arguments": {
+                    "action": "compile_circuit",
+                    "qasm": "qreg q[4];\nccx q[0],q[1],q[2];",
+                    "license_key": "ONEXI_QUANTUM_AUDIT_2500_LIVEKEY",
+                },
+            },
+        }
+    )
+    q_sub = json.loads(q_sub_resp["result"]["content"][0]["text"])
+    assert q_sub["status"] == "AUTHENTICATED_ENCLAVE_READY"
+    assert q_sub["active_tier"] == "QUANTUM_AUDIT_2500"
+
+    # 4. 8-Gate HPC Code Sandbox
+    hpc_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 107,
+            "method": "tools/call",
+            "params": {
+                "name": "onexi_hpc_code_sandbox",
+                "arguments": {"action": "audit_code_8gate", "code": "def add_exact(a: int, b: int) -> int:\n    return a + b\n"},
+            },
+        }
+    )
+    hpc = json.loads(hpc_resp["result"]["content"][0]["text"])
+    assert hpc["gates_passed"] == 8
+    assert hpc["deterministic_status"] == "VERIFIED_COMPUTED_PASS"
+
+    # 5. KutubLink & Aalim Scholar MCPs
+    kl_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 108,
+            "method": "tools/call",
+            "params": {
+                "name": "onexi_kutublink_turath",
+                "arguments": {"action": "audit_tashkil_and_abjad", "text": "بِسْمِ ٱللَّهِ"},
+            },
+        }
+    )
+    kl = json.loads(kl_resp["result"]["content"][0]["text"])
+    assert kl["is_vocalized"] is True
+    assert kl["abjad_mashriqi_total"] > 0
+
+    al_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 109,
+            "method": "tools/call",
+            "params": {
+                "name": "onexi_aalim_scholar",
+                "arguments": {"action": "calculate_zakah_exact", "net_zakatable_wealth": "4000", "nisab_threshold": "595"},
+            },
+        }
+    )
+    al = json.loads(al_resp["result"]["content"][0]["text"])
+    assert al["zakah_due_exact_fraction"] == "100"
+    assert al["deterministic_status"] == "VERIFIED_COMPUTED_PASS"
+
 

@@ -1,0 +1,31 @@
+{
+  "name": "onexi_hpc_code_sandbox",
+  "description": "ONE XI™ 8-Gate Executable Code & HPC Verification Cloud Paid MCP (onexi.tech): Performs 8-Gate deterministic Python AST complexity, security, and SHA-256 code-seal auditing and routes authenticated paid subscription workloads ($49/mo Pro, $199/mo Team, $499/mo Unlimited) to the ONE XI Cloud Sandbox.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "audit_code_8gate",
+          "cloud_hpc_execute"
+        ]
+      },
+      "code": {
+        "type": "string"
+      },
+      "task": {
+        "type": "string"
+      },
+      "license_key": {
+        "type": "string"
+      },
+      "customer_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action"
+    ]
+  }
+}

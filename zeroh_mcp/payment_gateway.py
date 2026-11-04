@@ -5,6 +5,14 @@ ONE XI Technologies by Aalimbooks International — Public Payment Gateway & Che
 Provides zero-dependency multi-rail checkout session resolution, 16-product Polar.sh/Stripe
 checkout catalog, Payoneer / Meezan Bank Corporate IBAN / Web3 USDT settlement coordinates,
 and the unified Inter Tight Starfield `ONE XI Checkout` page (`checkout.html`).
+
+Note on Public MCP vs. Payment-Only Scope:
+  - Public Paid Subscription MCPs (`mcp_visibility = "PUBLIC_PAID_MCP"`) cover ONE XI Cloud,
+    ONE XI Quantum Suite, ONE XI 8-Gate HPC Code Sandbox, KutubLink Digital/Cloud/Enterprise,
+    and Aalim Books / Warith.io Scholarly Verification.
+  - Bio / Clinical tiers (`mcp_visibility = "PAYMENT_ONLY_NOT_PUBLIC_YET"`) are retained
+    strictly inside the payment gateway for settlement and invoicing only, and are NOT
+    exposed as public MCP tools.
 """
 from __future__ import annotations
 
@@ -19,12 +27,12 @@ CHECKOUT_HTML_PATH = Path(__file__).resolve().parent / "checkout.html"
 CORPORATE_ENTITY_IDENTITY: Dict[str, Any] = {
     "gateway_brand": "ONE XI Technologies by Aalimbooks International",
     "operating_divisions": [
-        "ONE XI Technologies (onexi.tech)",
-        "ONE XI BIO Clinical & Biopharma Cloud (onexibio.com)",
+        "ONE XI Technologies Cloud & Quantum Suite (onexi.tech)",
         "Aalimbooks International / Aalim Books (aalimbooksint.com)",
         "Islamic Heritage Press (islamicheritagepress.com/aalimbooks)",
         "KutubLink Digital & Warith.io (kutublink.com | warith.io)",
     ],
+    "bio_division_policy": "PAYMENT_ONLY_NOT_PUBLIC_YET",
     "checkout_theme": {
         "theme_id": "ONEXI_INTER_TIGHT_STARFIELD_V2",
         "font_family": "Inter Tight (200, 300, 400, 500)",
@@ -62,6 +70,7 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "Aalimbooks International × KutubLink Digital",
         "name": "Single E-Book ($15)",
         "price_usd": 15.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_IsodrKALkvXOZNwTAUe2jXIPirwcKrrUn4fMW2IvZSb",
     },
     "BOOK_29_DIGITAL": {
@@ -70,14 +79,16 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "Aalimbooks International × KutubLink Digital",
         "name": "20-Volume Collection ($29)",
         "price_usd": 29.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_OY6kJpTMnbYcVss5frahza2pRh3bo8PkmlbFM42Psvg",
     },
     "FAST_49_PASS": {
         "code": "49",
         "tier_id": "FAST_49_PASS",
         "division": "ONE XI Technologies Cloud",
-        "name": "Pro Pass ($49)",
+        "name": "Pro Pass ($49 / mo)",
         "price_usd": 49.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_yiaY2QaaJrj4WuWm1bpQWOIPNDogghaLT2A0o0JczDW",
     },
     "FAST_99_AUDIT": {
@@ -86,6 +97,7 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "ONE XI Technologies Cloud",
         "name": "Pro Compute Pack ($99)",
         "price_usd": 99.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_Gz9p54IMeHEHkhJIbopPTKCX6LtlT3CI9isWR4PruOa",
     },
     "TURATH_150_SPRINT": {
@@ -94,14 +106,16 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "Aalimbooks International × KutubLink Cloud",
         "name": "OCR & Corpus Credits ($150)",
         "price_usd": 150.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_yHVdCwtXLV6BmKR800Ww2zWs6rD7L9dhDGyPq1XtvVw",
     },
     "LAB_199_PACK": {
         "code": "199",
         "tier_id": "LAB_199_PACK",
         "division": "ONE XI Technologies Cloud",
-        "name": "Team License ($199)",
+        "name": "Team License ($199 / mo)",
         "price_usd": 199.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_2rGWKtRrTpFyrMjKTRwRSv9Cb8F4FZmvW322i16kIwX",
     },
     "CLINICAL_PILOT_250": {
@@ -110,22 +124,25 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "ONE XI Technologies Cloud",
         "name": "Batch API Credits ($250)",
         "price_usd": 250.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_AAc3JcysPhTQFTF5r8RvXTwXdeH8eBHzzUxBO4Plnaz",
     },
     "PULSE_PER_PROCEDURE_SIMULATION": {
         "code": "350",
         "tier_id": "PULSE_PER_PROCEDURE_SIMULATION",
-        "division": "ONE XI Pulse Clinical API",
-        "name": "PULSE Clinical Simulation ($350 / patient)",
+        "division": "ONE XI Pulse Clinical Payment Tier (Payment Only)",
+        "name": "PULSE Simulation Settlement ($350)",
         "price_usd": 350.0,
+        "mcp_visibility": "PAYMENT_ONLY_NOT_PUBLIC_YET",
         "polar_url": "https://buy.polar.sh/polar_cl_65elMuiHLPwr7UAxL4EAv7FIXhg1WuC5gsrnR1MZWGa",
     },
     "BOOK_499_WAQF": {
         "code": "499",
         "tier_id": "BOOK_499_WAQF",
         "division": "Aalimbooks International × KutubLink Digital",
-        "name": "Department Pass / Institutional Library Seat ($499)",
+        "name": "Department Pass / Institutional Library Seat ($499 / mo)",
         "price_usd": 499.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_eXsIPJGpi0QnzjA913s581oKVvBz8ooPNUgOa49Ofe8",
     },
     "TURATH_PILOT_1500": {
@@ -134,6 +151,7 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "Aalimbooks International × KutubLink Enterprise",
         "name": "Corpus API License ($1,500 / yr)",
         "price_usd": 1500.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_mxNmmpL5zKWLFXrBBzMu7C1CEeM00enlnf0jk27GYzr",
     },
     "QUANTUM_AUDIT_2500": {
@@ -142,22 +160,25 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "ONE XI Quantum Suite",
         "name": "Quantum Compiler SDK ($2,500)",
         "price_usd": 2500.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_ZRpW61YKd5LTSuG3q9aRPhWqdiwWiXVnd8cs51JEP28",
     },
     "CHIRAL_PRO_4950": {
         "code": "4950",
         "tier_id": "CHIRAL_PRO_4950",
         "division": "ONE XI Technologies Enterprise",
-        "name": "Enterprise License ($4,950)",
+        "name": "Enterprise License ($4,950 / yr)",
         "price_usd": 4950.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_z06WyxPY8fRnaZ3G6dZrEKko3fp9rvq3JtNp91bdBx1",
     },
     "GENESIS_STARTER_BIOPHARMA_MONTHLY": {
         "code": "5000",
         "tier_id": "GENESIS_STARTER_BIOPHARMA_MONTHLY",
-        "division": "ONE XI Genesis Biopharma R&D",
-        "name": "GENESIS R&D Starter ($5,000 / mo)",
+        "division": "ONE XI Genesis Payment Tier (Payment Only)",
+        "name": "GENESIS R&D Starter Settlement ($5,000 / mo)",
         "price_usd": 5000.0,
+        "mcp_visibility": "PAYMENT_ONLY_NOT_PUBLIC_YET",
         "polar_url": "https://buy.polar.sh/polar_cl_tLfboQ7ehhuQeZen2RsNnXxB9tIBx3CfryIKp1ABbTu",
     },
     "QUANTUM_SUITE_COMPILER_SEAT_ANNUAL": {
@@ -166,24 +187,31 @@ ONEXI_16_PRODUCT_CATALOG: Dict[str, Dict[str, Any]] = {
         "division": "ONE XI Quantum Suite EDA",
         "name": "Quantum Compiler Seat ($25,000 / yr)",
         "price_usd": 25000.0,
+        "mcp_visibility": "PUBLIC_PAID_MCP",
         "polar_url": "https://buy.polar.sh/polar_cl_Zz0MHK1CwG3AriaHXdd7Y0atV1Kd3PDgBAWHL2tKoIM",
     },
     "GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY": {
         "code": "50000",
         "tier_id": "GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY",
-        "division": "ONE XI Genesis Enterprise Biopharma",
-        "name": "GENESIS Unlimited ($50,000 / mo)",
+        "division": "ONE XI Genesis Enterprise Payment Tier (Payment Only)",
+        "name": "GENESIS Unlimited Settlement ($50,000 / mo)",
         "price_usd": 50000.0,
+        "mcp_visibility": "PAYMENT_ONLY_NOT_PUBLIC_YET",
         "polar_url": "https://buy.polar.sh/polar_cl_MDfqAneUkOv5C8zFpf1PpjlzFYEMlVQb3kXbr2f3fOj",
     },
     "PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL": {
         "code": "120000",
         "tier_id": "PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",
-        "division": "ONE XI Pulse Hospital Network",
-        "name": "PULSE Network License ($120,000 / yr)",
+        "division": "ONE XI Pulse Network Payment Tier (Payment Only)",
+        "name": "PULSE Network Settlement ($120,000 / yr)",
         "price_usd": 120000.0,
+        "mcp_visibility": "PAYMENT_ONLY_NOT_PUBLIC_YET",
         "polar_url": "https://buy.polar.sh/polar_cl_pByY3kDswhIa0hC80Ua8Gjc1Mo4gi9XmzA16j21ZyhD",
     },
+}
+
+ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG: Dict[str, Dict[str, Any]] = {
+    k: v for k, v in ONEXI_16_PRODUCT_CATALOG.items() if v.get("mcp_visibility") == "PUBLIC_PAID_MCP"
 }
 
 
@@ -210,15 +238,21 @@ def handle_onexi_payment_gateway(args: Dict[str, Any]) -> Dict[str, Any]:
             "gateway": CORPORATE_ENTITY_IDENTITY["gateway_brand"],
             "corporate_identity": CORPORATE_ENTITY_IDENTITY,
             "products_count": len(ONEXI_16_PRODUCT_CATALOG),
+            "public_mcp_plans_count": len(ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG),
+            "bio_payment_only_tiers_count": len(ONEXI_16_PRODUCT_CATALOG) - len(ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG),
+            "bio_public_mcp_exposed": False,
             "coherence_index": 1.0,
             "confidence_score": "100.0%",
             "deterministic_status": "VERIFIED_COMPUTED_PASS",
         }
     if action == "list_checkout_catalog":
+        public_only = bool(args.get("public_mcp_only", False))
+        active_catalog = ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG if public_only else ONEXI_16_PRODUCT_CATALOG
         return {
             "gateway": CORPORATE_ENTITY_IDENTITY["gateway_brand"],
-            "products_count": len(ONEXI_16_PRODUCT_CATALOG),
-            "catalog": ONEXI_16_PRODUCT_CATALOG,
+            "products_count": len(active_catalog),
+            "catalog": active_catalog,
+            "bio_policy": "BIO_TIERS_IN_PAYMENT_GATEWAY_ONLY_NOT_PUBLIC_MCP_YET",
             "checkout_portals": CORPORATE_ENTITY_IDENTITY["checkout_portals"],
             "deterministic_status": "VERIFIED_COMPUTED_PASS",
         }

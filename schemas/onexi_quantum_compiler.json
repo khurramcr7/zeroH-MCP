@@ -1,0 +1,32 @@
+{
+  "name": "onexi_quantum_compiler",
+  "description": "ONE XI™ Quantum Suite — Fault-Tolerant Quantum Circuit Compilation & Resource Estimator Paid MCP (onexi.tech): 100% Black-Box protected (Merkle Root e8c2800b1f74c93cbc2546293f76caa550867559e5f46992843da9fce6c66ea2: 5.4126x T-gate reduction on invsqrt, -91.34% 64-bit adder Toffoli depth, -99.49% 2048-bit adder Toffoli depth, -60.17% QROM Toffoli reduction). Provides OpenQASM resource estimation and paid cloud compilation.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "benchmark_telemetry",
+          "estimate_resources",
+          "compile_circuit"
+        ]
+      },
+      "qasm": {
+        "type": "string"
+      },
+      "target": {
+        "type": "string"
+      },
+      "license_key": {
+        "type": "string"
+      },
+      "customer_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "onexi_kutublink_turath",
+  "description": "KutubLink™ & Aalim Books Classical Corpus & Heritage Concordance Paid MCP (kutublink.com | islamicheritagepress.com/aalimbooks): Audits Uthmani Tashkil vocalization fidelity and classical Hisab al-Jummal (Abjad) values, and connects paid subscribers ($15, $29, $150, $499, $1,500/yr) to the 578-work (121,843,480-word) vocalized Arabic corpus cloud.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "corpus_overview",
+          "audit_tashkil_and_abjad",
+          "corpus_cloud_search"
+        ]
+      },
+      "text": {
+        "type": "string"
+      },
+      "query": {
+        "type": "string"
+      },
+      "corpus": {
+        "type": "string"
+      },
+      "license_key": {
+        "type": "string"
+      },
+      "customer_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "action"
+    ]
+  }
+}

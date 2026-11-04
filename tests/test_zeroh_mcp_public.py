@@ -43,8 +43,15 @@ def test_mcp_initialize_and_tools_list() -> None:
         "zk_verify_receipt",
         "epistemic_consensus",
         "enclave_status",
+        "onexi_payment_gateway",
+        "onexi_subscription_gate",
+        "onexi_quantum_compiler",
+        "onexi_hpc_code_sandbox",
+        "onexi_kutublink_turath",
+        "onexi_aalim_scholar",
     }
-    assert expected.issubset(tool_names)
+    assert expected == tool_names
+    assert all("bio" not in name and "pulse" not in name and "genesis" not in name for name in tool_names)
 
 
 def test_validate_claim_arithmetic_pass_and_fail() -> None:
