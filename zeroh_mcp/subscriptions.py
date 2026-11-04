@@ -26,6 +26,7 @@ import hashlib
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.request
 from fractions import Fraction
@@ -137,16 +138,60 @@ def _resolve_api_credentials(args: Dict[str, Any]) -> Dict[str, str]:
     return {"api_key": key, "api_url": url}
 
 
+# ------------------------------------------------------------------------------
+# License keys are checked against Polar. A key only unlocks a tier if Polar
+# says it was issued to a paying customer (status "granted").
+#
+# Setup (Polar dashboard):
+#   1. Add a "License Keys" benefit to each paid product.
+#   2. Set ONEXI_POLAR_ORG_ID to your Polar organization ID.
+#   3. Set ONEXI_POLAR_BENEFIT_TIERS to a JSON map of benefit ID -> tier ID, e.g.
+#      {"<benefit-uuid>": "FAST_49_PASS", "<benefit-uuid>": "QUANTUM_AUDIT_2500"}
+# Without ONEXI_POLAR_ORG_ID, no key is accepted (fail closed).
+# ------------------------------------------------------------------------------
+POLAR_VALIDATE_URL = "https://api.polar.sh/v1/customer-portal/license-keys/validate"
+_LICENSE_CACHE: Dict[str, Any] = {}
+_LICENSE_CACHE_SECONDS = 600
+
+
+def _validate_key_with_polar(api_key: str) -> Optional[Dict[str, Any]]:
+    org_id = os.environ.get("ONEXI_POLAR_ORG_ID", "").strip()
+    if not org_id:
+        return None
+    req = urllib.request.Request(
+        os.environ.get("ONEXI_POLAR_VALIDATE_URL", POLAR_VALIDATE_URL),
+        data=json.dumps({"key": api_key, "organization_id": org_id}).encode("utf-8"),
+        headers={"Content-Type": "application/json", "User-Agent": "ONE-XI-Public-MCP/1.1.1"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=8.0) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+    if not isinstance(data, dict) or data.get("status") != "granted":
+        return None
+    return data
+
+
 def _infer_tier_from_key(api_key: str) -> Optional[str]:
     if not api_key or len(api_key) < 8:
         return None
-    upper = api_key.upper()
-    for tier_id in ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG:
-        if tier_id in upper:
-            return tier_id
-    if upper.startswith(("ONEXI_", "POLAR_", "ONX_", "ZH_")):
-        return "FAST_49_PASS"
-    return None
+    now = time.time()
+    cached = _LICENSE_CACHE.get(api_key)
+    if cached and now - cached[0] < _LICENSE_CACHE_SECONDS:
+        return cached[1]
+    tier: Optional[str] = None
+    validated = _validate_key_with_polar(api_key)
+    if validated:
+        try:
+            benefit_tiers = json.loads(os.environ.get("ONEXI_POLAR_BENEFIT_TIERS", "") or "{}")
+        except ValueError:
+            benefit_tiers = {}
+        mapped = benefit_tiers.get(str(validated.get("benefit_id") or ""))
+        tier = mapped if mapped in ONEXI_PUBLIC_MCP_SUBSCRIPTION_CATALOG else "FAST_49_PASS"
+    _LICENSE_CACHE[api_key] = (now, tier)
+    return tier
 
 
 def _build_subscription_required_response(

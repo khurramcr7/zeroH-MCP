@@ -146,7 +146,8 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     BOOK29: P+"polar_cl_OY6kJpTMnbYcVss5frahza2pRh3bo8PkmlbFM42Psvg",
     OCR150: P+"polar_cl_yHVdCwtXLV6BmKR800Ww2zWs6rD7L9dhDGyPq1XtvVw",
     SEAT499:P+"polar_cl_eXsIPJGpi0QnzjA913s581oKVvBz8ooPNUgOa49Ofe8",
-    CORP1500:P+"polar_cl_mxNmmpL5zKWLFXrBBzMu7C1CEeM00enlnf0jk27GYzr"
+    CORP1500:P+"polar_cl_mxNmmpL5zKWLFXrBBzMu7C1CEeM00enlnf0jk27GYzr",
+    PULSE120K:P+"polar_cl_pByY3kDswhIa0hC80Ua8Gjc1Mo4gi9XmzA16j21ZyhD"
   };
   function plan(id,g,name,price,unit,desc,url,inv){ return {id:id,g:g,name:name,price:price,unit:unit,desc:desc,url:url,invoice:!!inv}; }
   var SELF="Self-serve", ENT="Clinical & enterprise", TEAM="Teams & enterprise", DIG="Digital editions", INST="Institutions";
@@ -158,7 +159,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
     pulse:  plan("PULSE_PER_PROCEDURE_SIMULATION",ENT,"PULSE Clinical Simulation",350,"per patient","TAVR sizing and coronary vFFR twin",L.PULSE350),
     gen5k:  plan("GENESIS_STARTER_BIOPHARMA_MONTHLY",ENT,"GENESIS R&D Starter",5000,"per month","10,000 variant predictions a month",L.GEN5000),
     gen50k: plan("GENESIS_ENTERPRISE_BIOPHARMA_MONTHLY",ENT,"GENESIS Unlimited",50000,"per month","Unlimited variant screening",L.GEN50K),
-    pulse120k: plan("PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",ENT,"PULSE Network License",120000,"per year · invoice","Whole hospital network",null,true),
+    pulse120k: plan("PULSE_HOSPITAL_NETWORK_LICENSE_ANNUAL",ENT,"PULSE Network License",120000,"per year","Whole hospital network, card or invoice",L.PULSE120K),
     qsdk:   plan("QUANTUM_AUDIT_2500",TEAM,"Quantum Compiler SDK",2500,"one-time","Container image and cloud API key",L.QSDK2500),
     ent:    plan("CHIRAL_PRO_4950",TEAM,"Enterprise License",4950,"one-time","Multi-seat SaaS, API keys and SDK",L.ENT4950),
     qseat:  plan("QUANTUM_SUITE_COMPILER_SEAT_ANNUAL",TEAM,"Quantum Compiler Seat",25000,"per year","Annual developer seat",L.QSEAT25K),

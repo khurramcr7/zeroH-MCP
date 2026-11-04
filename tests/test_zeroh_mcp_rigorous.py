@@ -379,7 +379,17 @@ def test_inconsistent_equation_and_irrational_and_bft_unverified() -> None:
     assert "unreachable" in fb_res.get("enclave_warning", "")
 
 
-def test_onexi_public_paid_subscription_mcps_and_bio_payment_only_policy() -> None:
+def test_onexi_public_paid_subscription_mcps_and_bio_payment_only_policy(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Polar is the source of truth for keys; stand in for it here so the test runs offline.
+    from zeroh_mcp import subscriptions as subs
+
+    monkeypatch.setattr(subs, "_LICENSE_CACHE", {})
+    monkeypatch.setenv("ONEXI_POLAR_BENEFIT_TIERS", json.dumps({"benefit-quantum-2500": "QUANTUM_AUDIT_2500"}))
+    monkeypatch.setattr(
+        subs,
+        "_validate_key_with_polar",
+        lambda key: {"status": "granted", "benefit_id": "benefit-quantum-2500"} if key == "POLAR-ISSUED-TEST-KEY-0001" else None,
+    )
     # 1. Subscription Gate: status & public plans (Bio excluded from public MCP plans, kept in payment gateway)
     sub_status_resp = handle_mcp_request(
         {
@@ -457,7 +467,7 @@ def test_onexi_public_paid_subscription_mcps_and_bio_payment_only_policy() -> No
                 "arguments": {
                     "action": "compile_circuit",
                     "qasm": "qreg q[4];\nccx q[0],q[1],q[2];",
-                    "license_key": "ONEXI_QUANTUM_AUDIT_2500_LIVEKEY",
+                    "license_key": "POLAR-ISSUED-TEST-KEY-0001",
                 },
             },
         }
@@ -465,6 +475,25 @@ def test_onexi_public_paid_subscription_mcps_and_bio_payment_only_policy() -> No
     q_sub = json.loads(q_sub_resp["result"]["content"][0]["text"])
     assert q_sub["status"] == "AUTHENTICATED_ENCLAVE_READY"
     assert q_sub["active_tier"] == "QUANTUM_AUDIT_2500"
+
+    # A made-up key that merely looks like a tier name must NOT unlock anything.
+    forged_resp = handle_mcp_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 1061,
+            "method": "tools/call",
+            "params": {
+                "name": "onexi_quantum_compiler",
+                "arguments": {
+                    "action": "compile_circuit",
+                    "qasm": "qreg q[4];\nccx q[0],q[1],q[2];",
+                    "license_key": "ONEXI_QUANTUM_AUDIT_2500_LIVEKEY",
+                },
+            },
+        }
+    )
+    forged = json.loads(forged_resp["result"]["content"][0]["text"])
+    assert forged["status"] == "SUBSCRIPTION_REQUIRED"
 
     # 4. 8-Gate HPC Code Sandbox
     hpc_resp = handle_mcp_request(
