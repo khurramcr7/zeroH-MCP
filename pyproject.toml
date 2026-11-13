@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zeroh-mcp"
-version = "1.1.0"
+version = "1.2.0"
 description = "ONE XI & zeroH Public Paid Subscription MCP Suite — Deterministic AI Hallucination Guardrail, Quantum Compiler, 8-Gate Code Sandbox, KutubLink Corpus & Multi-Rail Payment Gateway"
 readme = "README.md"
 license = {text = "MIT"}

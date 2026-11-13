@@ -1,0 +1,21 @@
+{
+  "name": "zeroh-mcp",
+  "displayName": "zeroH Deterministic AI Guardrail & ONE XI Cloud",
+  "version": "1.2.0",
+  "description": "Intercept calculation drift, algebraic hallucinations, and unverified reasoning steps with SHA-256 cryptographic receipts, plus 1-click access to ONE XI Quantum, 8-Gate Code Sandbox, and KutubLink Corpus Cloud.",
+  "author": {
+    "name": "Khurram Younus (ONE XI Technologies)",
+    "url": "https://onexi.tech/zeroh"
+  },
+  "license": "MIT",
+  "mcpServers": {
+    "onexi-zeroh-mcp": {
+      "command": "uvx",
+      "args": ["zeroh-mcp"],
+      "env": {
+        "ONEXI_API_URL": "https://onexi.tech/api",
+        "ONEXI_API_KEY": ""
+      }
+    }
+  }
+}

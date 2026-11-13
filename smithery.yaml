@@ -1,0 +1,23 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      onexiApiUrl:
+        type: string
+        default: "https://onexi.tech/api"
+        description: "ONE XI Sovereign Cloud Enclave endpoint."
+      onexiApiKey:
+        type: string
+        default: ""
+        description: "Optional ONE XI Paid Subscription Key ($49/mo Pro, $199/mo Team, $499/mo Unlimited). Leave blank for zero-config local guardrail mode."
+  commandFunction: |-
+    (config) => ({
+      command: 'python',
+      args: ['-m', 'zeroh_mcp.server'],
+      env: {
+        ONEXI_API_URL: config.onexiApiUrl || 'https://onexi.tech/api',
+        ONEXI_API_KEY: config.onexiApiKey || ''
+      }
+    })

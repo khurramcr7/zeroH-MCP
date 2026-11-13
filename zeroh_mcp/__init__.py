@@ -7,7 +7,7 @@ proof ledgers, exact rational arithmetic/algebraic verification, and seamless
 bridging to the zeroH Sovereign Enclave without exposing proprietary formulas.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.2.0"
 
 from .models import (
     DeterministicStatus,
@@ -15,6 +15,11 @@ from .models import (
     ValidationReceipt,
 )
 from .client import ZeroHClient
+from .guardrail import (
+    ZeroHGuardrail,
+    ZeroHHallucinationError,
+    zeroh_guardrail,
+)
 from .server import handle_mcp_request, serve_stdio, serve_http
 
 __all__ = [
@@ -23,6 +28,9 @@ __all__ = [
     "EpistemicTier",
     "ValidationReceipt",
     "ZeroHClient",
+    "ZeroHGuardrail",
+    "ZeroHHallucinationError",
+    "zeroh_guardrail",
     "handle_mcp_request",
     "serve_stdio",
     "serve_http",

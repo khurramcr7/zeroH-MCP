@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.khurramcr7/zeroh-mcp",
+  "description": "Deterministic AI Hallucination Guardrail (delta = 0.0), Exact Rational Math Verifier, SHA-256 Step Ledger & ONE XI Enterprise Cloud MCP Suite.",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/khurramcr7/zeroH-MCP",
+    "source": "github"
+  },
+  "version": "1.2.0",
+  "websiteUrl": "https://onexi.tech/zeroh",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "zeroh-mcp",
+      "version": "1.2.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ONEXI_API_URL",
+          "description": "ONE XI Sovereign Cloud Enclave URL (default: https://onexi.tech/api)",
+          "isRequired": false,
+          "default": "https://onexi.tech/api"
+        },
+        {
+          "name": "ONEXI_API_KEY",
+          "description": "Optional ONE XI Paid Subscription Key ($49/mo Pro, $199/mo Team, $499/mo Unlimited) for Cloud Enclave tools. Leave empty for Free Open-Boundary Guardrail mode.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

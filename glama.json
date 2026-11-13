@@ -1,0 +1,10 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": [
+    "khurramcr7"
+  ],
+  "name": "zeroH & ONE XI MCP Guardrail",
+  "description": "Deterministic AI Hallucination Interception, Exact Rational Arithmetic & Algebraic Substitution Verifier, SHA-256 Merkle Step Ledgers, and ONE XI Paid Cloud Enclave Tools.",
+  "homepage": "https://onexi.tech/zeroh",
+  "license": "MIT"
+}

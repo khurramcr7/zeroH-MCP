@@ -49,17 +49,43 @@ It equips AI coding assistants, autonomous agents, and IDEs (**Claude Desktop**,
 
 ---
 
-## Quick Start
+## Quick Start (Zero-Friction 1-Command Onboarding)
 
-### 1. Installation
+### 1. Instant Install via `uvx`, `pip`, or Smithery
 
 ```bash
-git clone https://github.com/khurramcr7/zeroH-MCP.git
-cd zeroH-MCP
-pip install -e .
+# Option A: Run directly with uvx (Zero virtual-env setup)
+uvx zeroh-mcp
+
+# Option B: Install Python SDK + MCP Server via pip
+pip install zeroh-mcp
+
+# Option C: 1-Click Smithery IDE Installer
+npx -y @smithery/cli install @khurramcr7/zeroH-MCP --client claude
 ```
 
-### 2. Configure in Claude Desktop / Cursor / Antigravity IDE
+*(For local source development: `git clone https://github.com/khurramcr7/zeroH-MCP.git && cd zeroH-MCP && pip install -e .`)*
+
+### 2. Drop-In Python LLM Guardrail Decorator (`@zeroh_guardrail`)
+
+Wrap any OpenAI, Anthropic, Google Gemini, LangChain, or custom agent function in **3 lines of Python** to intercept arithmetic/algebraic hallucinations and emit tamper-evident SHA-256 session Merkle receipts:
+
+```python
+from zeroh_mcp import zeroh_guardrail, ZeroHGuardrail, ZeroHHallucinationError
+
+@zeroh_guardrail(strict=True)
+def generate_financial_summary() -> str:
+    # Any arithmetic or algebraic hallucination raises ZeroHHallucinationError
+    # before reaching downstream users or regulated workflows!
+    return "Quarterly allocation check: 1250 * 4 = 5000. Net balance verified."
+
+# Or inspect arbitrary multi-sentence LLM completions programmatically:
+guard = ZeroHGuardrail()
+audit = guard.inspect_text("Step 1: 12 * 12 = 144. Step 2: 15 + 25 = 40.")
+print(audit["overall_status"], audit["session_merkle_head"])
+```
+
+### 3. Configure in Claude Desktop / Cursor / Antigravity IDE / Windsurf
 
 Add the following to your MCP configuration file (`claude_desktop_config.json`, `.cursor/mcp.json`, or Antigravity MCP settings):
 
@@ -67,13 +93,11 @@ Add the following to your MCP configuration file (`claude_desktop_config.json`, 
 {
   "mcpServers": {
     "onexi-zeroh-mcp": {
-      "command": "python",
-      "args": ["-m", "zeroh_mcp.server"],
+      "command": "uvx",
+      "args": ["zeroh-mcp"],
       "env": {
         "ONEXI_API_URL": "https://onexi.tech/api",
-        "ONEXI_API_KEY": "your_onexi_subscription_key_here",
-        "ZEROH_API_URL": "",
-        "ZEROH_API_KEY": ""
+        "ONEXI_API_KEY": ""
       }
     }
   }
