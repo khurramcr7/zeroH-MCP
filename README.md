@@ -3,7 +3,7 @@
 [![Protocol: MCP 2024-11-05](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io)
 [![IP Protection: Sovereign Enclave Vaulted](https://img.shields.io/badge/Proprietary_Formulas-Vaulted_%26_Non--Exposed-success.svg)](./SECURITY_AND_IP_BOUNDARY.md)
 [![License: MIT Client](https://img.shields.io/badge/License-MIT_Client-green.svg)](./LICENSE)
-[![Agensi Verified Skill: $29 Standalone](https://img.shields.io/badge/Agensi.io-zeroH_Standalone_SKILL.md_(%2429)-f59e0b.svg)](https://www.agensi.io/skills/zeroh-deterministic-code-math-claim-guardrail)
+[![Agensi Verified Skill: $29 Standalone](https://img.shields.io/badge/Agensi.io-zeroH_Standalone_SKILL.md_(%2429)-f59e0b.svg)](https://www.agensi.io/r/ONEXI?to=/skills/zeroh-deterministic-code-math-claim-guardrail)
 [![Agensi Free Connector: ONE XI Cloud](https://img.shields.io/badge/Agensi.io-ONE_XI_Cloud_Connector_(Free)-10b981.svg)](https://www.agensi.io/skills/one-xi-cloud-connector-deterministic-verification)
 
 **ONE XI™ & zeroH MCP** is the official public **Model Context Protocol (MCP)** server and Python SDK for **ONE XI Technologies by Aalimbooks International** (`onexi.tech` | `kutublink.com` | `warith.io` | `islamicheritagepress.com/aalimbooks`).
@@ -11,6 +11,8 @@
 It equips AI coding assistants, autonomous agents, and IDEs (**Claude Desktop**, **Antigravity IDE**, **Cursor**, **Windsurf**, and custom MCP hosts) with **15 deterministic MCP tools** spanning open-boundary mathematical verification, **ONE XI™ Paid Subscription Cloud MCPs** (Quantum Circuit Compilation, 8-Gate Executable Code & HPC Auditing, KutubLink 121.8M-Word Classical Corpus Concordance, and Aalim AI / Wārith.io Scholarly Verification), and the **Multi-Rail Sovereign Payment Gateway** (`Polar.sh` + `Stripe 3D-Secure`, `Payoneer`, `Meezan Bank Corporate IBAN`, and `Web3 USDT/USDC`).
 
 > **Scope Policy**: Public MCP tools cover **ONE XI Cloud**, **ONE XI Quantum Suite**, **ONE XI 8-Gate HPC Sandbox**, **KutubLink**, and **Aalim Books / Wārith.io**. Bio/clinical tiers are retained **strictly inside the payment gateway (`onexi_payment_gateway`) for settlement only** and are **not exposed as public MCP tools yet**.
+
+> **Launch Week Offer (`LAUNCH19`)**: Get all **3 Standalone Python-Stdlib Guardrail Skills** (`zeroH` + `8-Gate Python AST Auditor` + `JSON & API Contract Guardrail`) for **`$19` (`$10` OFF)** with promo code **`LAUNCH19`** at [Polar Instant Checkout](https://buy.polar.sh/polar_cl_FYXoYZ5Pd2dqeJjKu9e56xcC1Smxm3C27VOIv10qTdL) — or install via [Agensi.io (`$29`)](https://www.agensi.io/r/ONEXI?to=/skills/zeroh-deterministic-code-math-claim-guardrail) and explore [onexi.tech/zeroh](https://onexi.tech/zeroh).
 
 ---
 
@@ -38,7 +40,7 @@ Install pre-packaged, security-scanned agent skills for **Claude Code**, **Curso
 
 | Verified Listing | Tier | Highlights | Marketplace Link |
 | :--- | :--- | :--- | :--- |
-| **zeroH Deterministic Code, Math & Claim Guardrail** | **`$29` Standalone** | 100% local Python 3 stdlib arithmetic, JSON contract, AST safety & claim verification — **zero external API key required** | [Get `$29` Skill on Agensi](https://www.agensi.io/skills/zeroh-deterministic-code-math-claim-guardrail) |
+| **zeroH Deterministic Code, Math & Claim Guardrail** | **`$29` Standalone** | 100% local Python 3 stdlib arithmetic, JSON contract, AST safety & claim verification — **zero external API key required** | [Get `$29` Skill on Agensi](https://www.agensi.io/r/ONEXI?to=/skills/zeroh-deterministic-code-math-claim-guardrail) |
 | **ONE XI Cloud Connector — Deterministic Verification** | **`Free`** | Instant MCP config + setup guide connecting agents to `onexi.tech` (`50,000` free trial tokens; optional `$49/mo` Pro & `$199/mo` Team upgrades) | [Install Free on Agensi](https://www.agensi.io/skills/one-xi-cloud-connector-deterministic-verification) |
 | **Khurram Younus — ONE XI Creator Storefront** | **Catalog** | Browse all verified `ONE XI™` & `zeroH™` skills and connectors on Agensi | [View Creator Profile](https://www.agensi.io/creators/khurram-younus) |
 
