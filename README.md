@@ -5,6 +5,7 @@
 [![License: MIT Client](https://img.shields.io/badge/License-MIT_Client-green.svg)](./LICENSE)
 [![Agensi Verified Skill: $29 Standalone](https://img.shields.io/badge/Agensi.io-zeroH_Standalone_SKILL.md_(%2429)-f59e0b.svg)](https://www.agensi.io/r/ONEXI?to=/skills/zeroh-deterministic-code-math-claim-guardrail)
 [![Agensi Free Connector: ONE XI Cloud](https://img.shields.io/badge/Agensi.io-ONE_XI_Cloud_Connector_(Free)-10b981.svg)](https://www.agensi.io/skills/one-xi-cloud-connector-deterministic-verification)
+[![khurramcr7/zeroH-MCP MCP server](https://glama.ai/mcp/servers/khurramcr7/zeroH-MCP/badges/score.svg)](https://glama.ai/mcp/servers/khurramcr7/zeroH-MCP)
 
 **ONE XI™ & zeroH MCP** is the official public **Model Context Protocol (MCP)** server and Python SDK for **ONE XI Technologies by Aalimbooks International** (`onexi.tech` | `kutublink.com` | `warith.io` | `islamicheritagepress.com/aalimbooks`).
 

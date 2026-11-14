@@ -54,3 +54,6 @@ Issues = "https://github.com/khurramcr7/zeroH-MCP/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["zeroh_mcp*"]
+
+[tool.setuptools.package-data]
+zeroh_mcp = ["*.html"]
