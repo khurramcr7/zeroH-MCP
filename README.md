@@ -3,6 +3,8 @@
 [![Protocol: MCP 2024-11-05](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io)
 [![IP Protection: Sovereign Enclave Vaulted](https://img.shields.io/badge/Proprietary_Formulas-Vaulted_%26_Non--Exposed-success.svg)](./SECURITY_AND_IP_BOUNDARY.md)
 [![License: MIT Client](https://img.shields.io/badge/License-MIT_Client-green.svg)](./LICENSE)
+[![Agensi Verified Skill: $29 Standalone](https://img.shields.io/badge/Agensi.io-zeroH_Standalone_SKILL.md_(%2429)-f59e0b.svg)](https://www.agensi.io/skills/zeroh-deterministic-code-math-claim-guardrail)
+[![Agensi Free Connector: ONE XI Cloud](https://img.shields.io/badge/Agensi.io-ONE_XI_Cloud_Connector_(Free)-10b981.svg)](https://www.agensi.io/skills/one-xi-cloud-connector-deterministic-verification)
 
 **ONE XI™ & zeroH MCP** is the official public **Model Context Protocol (MCP)** server and Python SDK for **ONE XI Technologies by Aalimbooks International** (`onexi.tech` | `kutublink.com` | `warith.io` | `islamicheritagepress.com/aalimbooks`).
 
@@ -27,6 +29,18 @@ It equips AI coding assistants, autonomous agents, and IDEs (**Claude Desktop**,
    - When configured with an active **ONE XI™ Paid Subscription Key** (`ONEXI_API_KEY` or `ONEXI_LICENSE_KEY`), the server unlocks full cloud enclave execution across `onexi_quantum_compiler`, `onexi_hpc_code_sandbox`, `onexi_kutublink_turath`, and `onexi_aalim_scholar`.
    - If a paid cloud action is invoked without an active subscription key, the MCP tool automatically returns `SUBSCRIPTION_REQUIRED` along with a **1-click Polar.sh + Stripe 3D-Secure checkout link**, **Payoneer B2B portal**, **Meezan Bank Corporate IBAN**, and **Web3 USDT/USDC settlement coordinates**.
    - All proprietary invariant constants, closed-form equations, compiler passes, and canonical database tensors remain 100% vaulted inside the remote Sovereign Enclave.
+
+---
+
+## Official Agensi.io Verified Agent Skills (`SKILL.md`)
+
+Install pre-packaged, security-scanned agent skills for **Claude Code**, **Cursor**, **GitHub Copilot**, **Windsurf**, **OpenClaw**, and **Antigravity IDE** directly from the **Agensi Marketplace**:
+
+| Verified Listing | Tier | Highlights | Marketplace Link |
+| :--- | :--- | :--- | :--- |
+| **zeroH Deterministic Code, Math & Claim Guardrail** | **`$29` Standalone** | 100% local Python 3 stdlib arithmetic, JSON contract, AST safety & claim verification — **zero external API key required** | [Get `$29` Skill on Agensi](https://www.agensi.io/skills/zeroh-deterministic-code-math-claim-guardrail) |
+| **ONE XI Cloud Connector — Deterministic Verification** | **`Free`** | Instant MCP config + setup guide connecting agents to `onexi.tech` (`50,000` free trial tokens; optional `$49/mo` Pro & `$199/mo` Team upgrades) | [Install Free on Agensi](https://www.agensi.io/skills/one-xi-cloud-connector-deterministic-verification) |
+| **Khurram Younus — ONE XI Creator Storefront** | **Catalog** | Browse all verified `ONE XI™` & `zeroH™` skills and connectors on Agensi | [View Creator Profile](https://www.agensi.io/creators/khurram-younus) |
 
 ---
 
